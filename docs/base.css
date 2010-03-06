@@ -1,0 +1,445 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	color: #444;
+	background-color: white;
+	text-align: center;
+	line-height: 1.4;
+}
+
+.code {
+	padding: 2px 4px;
+	background-color: #f5f5f5;
+	white-space: normal;
+	overflow: hidden;
+}
+
+code {
+	font-size: 1.2em;
+	color: #006600;
+}
+
+img { border: 0; }
+
+h1, h2, h3, h4, h5, h6 { color: #888;  font-weight: bold; margin-bottom: 0px; padding-bottom: 0px ; margin-top: 0px;}
+h1 { font-size: 2.5em; color: #8A8; letter-spacing: -2px; }
+h2 { font-size: 1.2em }
+h3 { font-size: 1.1em }
+h4, h5, h6 { font-size: 1.0em }
+
+p, ul, ol {
+	margin-top: 1em;
+}
+
+h1 + p, h2 + p, h3 + p {
+	margin-top: 0;
+}
+
+p + ul {
+	margin-top: 0;
+}
+
+select { padding: 0px; margin: 0px }
+select option { padding: 0px 4px }
+
+.byline { margin-top: -6px; margin-left: 1px;}
+
+/** Elements **/
+#wrapper { margin-left: 4px; 
+           margin-right: 4px;
+           text-align: left; 
+           background-color: #fff; 
+           position: relative; 
+           padding-bottom: 4em; }
+
+#top {
+    margin: 0px 6px; 
+    padding: 0px 12px 2px 0px; 
+    border-bottom: 1px solid #DDD;
+}
+
+#content { 
+    margin: 1em 18px; 
+}
+
+/** icons **/
+.module {
+    background-image: url('icons/m.png');
+}
+
+.function {
+    background-image: url('icons/f.png');
+}
+
+.class {
+    background-image: url('icons/c.png');
+}
+
+/** Specific **/
+.extends {
+    display: block;
+    color: #AAA;
+    font-size: 10px;
+    text-decoration: none;
+    margin: 2px 0px 2px 28px;
+}
+
+.t-button .extends {
+    margin: 0px;
+    float: right;
+}
+
+.info {
+    margin-bottom: 1em;
+}
+
+.t-title .sig {
+    font-weight: normal;
+    color: #AAA;
+}
+
+.name + p {
+    margin-top: 0px;
+}
+
+.t-content BLOCKQUOTE {
+    margin-left: 1em;
+}
+
+.t-content UL {
+    margin-left: .5em;
+}
+
+.t-content LI {
+    margin-left: 1em;
+}
+
+.t-panel .t-back  {
+    background-image: url(back.png);
+    background-position: left;
+    background-repeat: no-repeat;
+    float: left;
+    width: 22px;
+    height: 14px;
+    margin-top: 2px;
+    margin-right: 8px;
+    margin-left: -6px;
+    cursor: pointer;
+}
+
+.MessagePane {
+    z-index: 999999999;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    display: none;
+    background: black;
+}
+
+.MessagePane .content {
+    color: white;
+    font-size: 1.8em;
+    text-align: right;
+    margin: .5em 1em;
+}
+
+.t-hidden {
+    display: none;
+}
+
+.t-panel {
+    position: absolute;
+    z-index: 400;
+    background-color: #fff;
+}
+
+.t-panel .t-title {
+    color: #333;
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 2px;
+    text-algin: right;
+}
+
+.t-panel .t-content {
+}
+
+.t-panel .t-close {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    text-align: center;
+    height: 16px;
+    width: 16px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.t-item {
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.t-hover {
+    background-color: #CFC1C1 !important;
+}
+
+.t-list {
+    padding: 0px 0px;
+    overflow: auto;
+}
+
+.t-list .t-selected {
+    background-color: #E5DFDF;
+}
+
+.t-item > * {
+    margin-left: 38px;
+}
+
+.t-list .t-icon, .t-drag .t-icon, .t-item .t-icon {
+    margin: -4px 6px 0px 0px;
+    width: 28px;
+    height: 28px;
+    background-position: left;
+    background-repeat: no-repeat;
+    float: left;
+}
+
+.t-drag .t-description {
+    display: none;
+}
+
+.t-header {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 4px;
+    margin-left: 44px;
+}
+
+.t-medium .t-item {
+    min-height: 30px;
+    clear: both;
+}
+
+.t-small .t-item {
+    min-height: 15px;
+    clear: both;
+}
+
+.t-small .t-icon {
+    height: 18px;
+    width: 18px;
+}
+
+.t-bar {
+    height: 40px;
+}
+
+.t-top {
+    border-bottom:none;
+}
+
+.t-whitespace {
+    margin: 4px 8px;
+}
+
+.t-button {
+    position: relative;
+    padding: 3px 5px 3px 35px;
+    margin: 2px;
+    cursor: pointer;
+    line-height: 28px;
+}
+
+.t-button-hover {
+    background-color: #f5f5f5;
+}
+
+.t-button .t-text {
+    font-size: 14px;
+}
+
+.t-button .t-icon {
+    width: 28px;
+    height: 28px;
+    left: 0px;
+    position: absolute;
+    background-position: left;
+    background-repeat: no-repeat;
+    margin-left: 3px;
+}
+
+.t-field {
+    clear: both;
+    margin: 4px 8px 4px 8px;
+}
+
+.t-field label {
+    clear: left;
+    float: left;
+    width: 130px;
+    text-align: right;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+.t-field input, .t-field textarea {
+    border: 1px solid #888;
+    padding: 2px 2px;
+    width: 400px;
+    display: block;
+}
+
+.t-object-field {
+    line-height: 32px;
+}
+
+.t-object-field .t-dropdown {
+    margin-left: -1px;
+}
+
+.t-object-field .t-item {
+    padding: 2px 2px;
+}
+
+.t-object-field .t-object {
+    position: relative;
+    border: 1px solid #888;
+    width: 404px;
+    display: block;
+    float: left;
+    margin-bottom: 4px;
+    background-position: left;
+    background-repeat: no-repeat;
+}
+
+.t-object-field .t-object input {
+    width: 360px;
+    border: none;
+    padding: 6px 0;
+    font-size: 16px;
+}
+
+.t-field .t-static {
+    font-weight: bold;
+    color: #888;
+}
+
+.t-float-right {
+    float: right;
+}
+
+.t-float-left {
+    float: left;
+}
+
+.t-dialog {
+    position: absolute;
+    z-index: 8000;
+}
+
+.t-dialog .t-field input {
+    width: 200px;
+}
+
+.t-dialog .t-form {
+    width: 400px;
+    margin: 20px 0px;
+}
+
+.t-window .t-content {
+    padding: .5em 1em;
+}
+
+.t-big textarea {
+    height: 300px;
+}
+
+.t-dropdown {
+    position: absolute;
+    z-index: 8000;
+    border: 1px solid #888;
+    background-color: #fff;
+    text-align: left;
+}
+
+.t-focuser {
+    position: absolute;
+    z-index: -1;
+    -moz-outline: 0 none;
+    outline: 0 none;
+    width: 0;
+    height: 0; 
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.t-overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    z-index: 999999 !important;
+    text-align: left;
+    overflow: hidden;
+    display: none;
+    cursor: move;
+}
+
+.t-drag {
+    cursor: move;
+}
+
+.t-collapsed {
+    height: 10px;
+}
+
+.t-collapsed * {
+    display: none;
+}
+
+.t-disabled {
+    cursor: default;
+/*    opacity: .3;
+    filter: alpha(opacity=30);
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";*/
+}
+
+.t-search-bar {
+    background-color: #EEE;
+    border-bottom: 1px solid #DDD;
+}
+
+.t-panel .t-icon-space {
+    border-left: 1px solid #AAA;
+    float: right;
+    height: 22px;
+    margin-right: -8px;
+    margin-top: -2px;
+    width: 22px;
+}
+
+.t-icon-space .t-icon {
+    margin: 3px;
+}
+
+.t-error input, .t-error textarea {
+    outline: 1px solid #ffe1b1;
+    border: 1px solid #e8b25c;
+}
+
+.t-stack {
+    position: relative;
+}
