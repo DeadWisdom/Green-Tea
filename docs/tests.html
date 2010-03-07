@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<title>
+        Green Tea - Unit Testing
+    </title>
+	
+	<link rel="stylesheet" href="base.css" type="text/css"/>
+	<script type='text/javascript' src='../jquery.js'></script>
+	<script type='text/javascript' src='../build/tea.js'></script>
+	<script type='text/javascript' src='../build/tea.tests.js'></script>
+	
+	<script type="text/javascript" charset="utf-8">
+        $(function()
+        {
+            var results = Tea.Testing.run();
+    
+            if (results.count > results.passed)
+            {
+                // This color (#FF0000) offends me, and is my punishment for failing tests.
+                // Just looked at it-- god it's awful.  Hopefully I won't skip writing tests to avoid it.
+                $('.byline').append(" - <span style='color: #FF0000'>Fail</span>"); 
+            }
+            else
+            {
+                $('.byline').append(" - <span style='color: #88AA88'>Pass</span>");
+            }
+        })
+	</script>
+</head>
+
+<body>
+	<div id='wrapper'>
+		<div id='top'>
+			<h1>Green Tea</h1>
+			<h3 class='byline'>Unit Tests</h3>
+		</div>
+    	<div id='content'>
+			
+	    </div>
+	</div>
+</body>
+</html>
+
