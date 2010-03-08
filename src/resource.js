@@ -27,7 +27,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
                 this.setValue(value);
                 if (opts.onLoad)
                     opts.onLoad.call(options.scope || this, this.value);
-                this.trigger('load', this.value);
+                this.trigger('load', [this.value]);
             },
             data: this.params,
             url: this.options.url

@@ -15,7 +15,7 @@ new Tea.Testing.Suite({
         
         var source = button.render();
         
-        assertEqual(source[0].childNodes[0].className, 't-icon the-icon-class');
+        assertEqual(source[0].childNodes[0].className, 't-icon the-icon-class icon-the-icon-class');
         assertEqual(source[0].childNodes[1].innerHTML, 'The Button!');
     }
 })

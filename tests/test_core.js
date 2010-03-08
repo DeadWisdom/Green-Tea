@@ -62,24 +62,24 @@ new Tea.Testing.Suite({
         var object = new Tea.Object();
         var state = 0;
         
-        object.bind("signal", function(e) { state += e.data }, 1);
+        object.bind("signal", function(step) { state += step }, [1]);
         object.trigger('signal');
         assertEqual(state, 1);
         
-        object.bind("signal", function(e, step) { state += step });
-        object.trigger('signal', 2);
+        object.bind("signal", function(step) { state += step }, [2]);
+        object.trigger('signal');
         assertEqual(state, 4)
         
         object.unbind('signal');
         object.trigger('signal');
         assertEqual(state, 4);
         
-        var add_one = function(e) { state += 1 };
+        var add_one = function() { state += 1 };
         object.bind('signal', add_one);
         object.trigger('signal');
         assertEqual(state, 5);
         
-        var add_two = function(e) { state += 2 };
+        var add_two = function() { state += 2 };
         object.bind('signal', add_two);
         object.trigger('signal');
         assertEqual(state, 8);

@@ -25,7 +25,7 @@ new Tea.Testing.Suite({
         var data = null;
         var resource = new Tea.Resource({url: 'load'});
         
-        resource.bind('load', function(evt, value) { data = value });
+        resource.bind('load', function(value) { data = value });
         resource.load();
         
         assertEqual(data, "hello");

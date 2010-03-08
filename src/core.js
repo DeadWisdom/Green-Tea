@@ -15,7 +15,7 @@ var Tea = {root: ''};
     
     arguments:
         Strings of urls to the given resource.  If the string ends with .css, it is added with
-        a <style> tag; if it's a .js, it is added with a <script> tag.  If the string is in 
+        a <style> tag; if it's a .js, it is added with a <script> tag.  If the string is in
         Tea.
  **/
 Tea.require = function()
@@ -216,13 +216,12 @@ Tea.Object.prototype.toString = function()
 {
     return "<" + this.constructor.id + ">";
 },
-Tea.Object.prototype.options = {};
 
-/** Tea.Object.prototype.bind(types, handler, [args])
-    Binds one or many events to this instance to the given function which will be called with the given args.
+/** Tea.Object.prototype.bind(event, handler, [args])
+    Binds an event for this instance to the given function which will be called with the given args.
     
-    types:
-        A list of strings, or one string of events to bind.
+    event:
+        An event name to bind.
     
     handler:
         The function to call when the event is triggered.
@@ -230,38 +229,61 @@ Tea.Object.prototype.options = {};
     args (optional):
         A list of arguments to pass into when calling the handler.
  **/
-Tea.Object.prototype.bind = function(types, handler, args) { return jQuery.event.add(this, types, handler, args) };
+Tea.Object.prototype.bind = function(event, handler, args)
+{
+    if (!this.__events) this.__events = {};
+    if (!this.__events[event]) this.__events[event] = [];
+    this.__events[event].push([handler, args]);
+};
 
-/** Tea.Object.prototype.unbind(types, [handler])
-    Unbinds one or many events from this instance.  If handler is given, only events pointing to that
-    handler are unbound.
+/** Tea.Object.prototype.unbind(event, [handler])
+    Unbinds an events from this instance.  If handler is given, only events pointing to that
+    handler are unbound.  Otherwise all handlers for that event are unbound.
     
-    types:
-        A list of strings, or one string of events to unbind.
+    event:
+        An event name to unbind.
     
     handler:
         Only events pointing the given handler are unbound.
  **/
-Tea.Object.prototype.unbind = function(types, handler) { jQuery.event.remove(this, types, handler) };
-
-/** Tea.Object.prototype.trigger(...)
-    Triggers all of the events given as arguments.
-    
-    arguments:
-        A series of event-names as strings.
- **/
-Tea.Object.prototype.trigger = function() { 
-    var args = Array.prototype.slice.call(arguments);
-    var type_or_event = args.shift();
-    
-    if (typeof type_or_event.type == 'string')
-        event = type_or_event;
+Tea.Object.prototype.unbind = function(event, handler) { 
+    if (!this.__events) return;
+    var handlers = this.__events[event];
+    if (!handlers) return;
+    if (handler)
+    {
+        jQuery.each(handlers, function(i)
+        {
+            if (this[0] == handler)
+            {
+                handlers.splice(i, 1);
+            }
+        });
+    }
     else
-        event = new jQuery.Event(type_or_event);
+    {
+        delete this.__events[event];
+    }
+};
+
+/** Tea.Object.prototype.trigger(name)
     
-    args.splice(0, 0, event);
-    
-    jQuery.event.trigger(event, args, this, true);
+    event:
+        The event name to trigger.
+        
+    args:
+        Arguments to pass onto the function.  These go after
+        any arguments set in the bind().
+ **/
+Tea.Object.prototype.trigger = function(event, args) { 
+    if (!this.__events) return;
+    var handlers = this.__events[event];
+    if (!handlers) return;
+    if (!args) args = [];
+    for(var i = 0; i < handlers.length; i++)
+    {
+        handlers[i][0].apply(this, (handlers[i][1] || []).concat(args));
+    }
 };  
 
 /** Tea.Class(name, properties) !important
@@ -523,11 +545,11 @@ Tea.quoteString.meta = {
     Makes an ajax call to the given resource using jQuery.ajax.  Some options are
     automatically configured for you to make things easier.
     
-    Tea.ajax will look up any Route with the name of the url you pass in.  The route's url is then 
+    Tea.ajax will look up any Route with the name of the url you pass in.  The route's url is then
     replaced.  For instance if you had a route named 'document' that pointed to '/ajax/document/',
     you can use the options {url: 'document'}, which will then expand to: {url: '/ajax/document/'}.
     
-    For callbacks, one can either over-ride 'callback' or, if either 'success' or 'failure' is given, 
+    For callbacks, one can either over-ride 'callback' or, if either 'success' or 'failure' is given,
     Tea will check the response object for a '__failure__' property.  If there, 'failure' will be
     called.  If not there, 'success' will be called.
     
