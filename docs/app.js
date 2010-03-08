@@ -8,7 +8,7 @@ App = Tea.Application.subclass('App', {
         Tea.ajax({
             url: 'docs.json',
             success: this.load, 
-            scope: this
+            context: this
         });
     },
     

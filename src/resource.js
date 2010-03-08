@@ -11,7 +11,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
         value: null,
         params: {},
         onLoad : null,
-        scope: null
+        context: null
     },
     __init__ : function()
     {
@@ -26,7 +26,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
             {
                 this.setValue(value);
                 if (opts.onLoad)
-                    opts.onLoad.call(options.scope || this, this.value);
+                    opts.onLoad.call(options.context || this, this.value);
                 this.trigger('load', [this.value]);
             },
             data: this.params,
@@ -34,7 +34,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
         }
         
         jQuery.extend(opts, options);
-        opts.scope = this;
+        opts.context = this;
         
         Tea.ajax(opts);
     },

@@ -523,7 +523,7 @@ jQuery.extend({
 	globalEval: function( data ) {
 		if ( data && rnotwhite.test(data) ) {
 			// Inspired by code by Andrea Giammarchi
-			// http://webreflection.blogspot.com/2007/08/global-scope-evaluation-and-dom.html
+			// http://webreflection.blogspot.com/2007/08/global-context-evaluation-and-dom.html
 			var head = document.getElementsByTagName("head")[0] || document.documentElement,
 				script = document.createElement("script");
 

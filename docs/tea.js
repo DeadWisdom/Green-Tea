@@ -563,22 +563,22 @@ Tea.ajax = function(options, overriding)
     var success = options.success;
     var failure = options.failure;
     var invalid = options.invalid;
-    var scope = options.scope;
+    var context = options.context;
     
     options.success = function(response)
     {   
         if (response && response.__errors__ && invalid) {
-            return invalid.call(scope, response);
+            return invalid.call(context, response);
         }
         
         if (success)
-            return success.call(scope, response);
+            return success.call(context, response);
     }
     
     if (failure)
         options.error = function(response)
         {
-            return failure.apply(scope);
+            return failure.apply(context);
         }/*
     else
         options.error = function(response)
@@ -591,7 +591,7 @@ Tea.ajax = function(options, overriding)
     options.type = options.method;
     
     delete options.method;
-    delete options.scope;
+    delete options.context;
     return jQuery.ajax(options);
 }
 
@@ -600,7 +600,7 @@ Tea._ajax_default = {
     method: 'get',
     data: {},
     dataType: 'json',
-    scope: null,
+    context: null,
     
     /*
     async: true,
@@ -811,7 +811,7 @@ Tea.Element = Tea.Class('Tea.Element', {
             
         if (this.options.bind)
             for(var k in this.options.bind)
-                this.bind(k, Tea.method(this.options.bind[k], this.options.scope || this));
+                this.bind(k, Tea.method(this.options.bind[k], this.options.context || this));
         
         var behaviors = this.options.behaviors;
         if (behaviors && behaviors.length > 0)
@@ -1327,7 +1327,7 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         success: null,
         callback: null,
         dataType: 'json',
-        scope: null,
+        context: null,
         method: 'post',
         submit: null,
         focus: true,
@@ -1362,12 +1362,12 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         this.each(function() { if (this.name) data[this.name] = this.getValue() });
         
         if (this.options.filter)
-            data = this.options.filter.call(this.scope || this, data);
+            data = this.options.filter.call(this.context || this, data);
         
         if (this.options.submit)
         {
             try {
-                return this.options.submit.call(this.options.scope || this, data);
+                return this.options.submit.call(this.options.context || this, data);
             } catch(e) { 
                 console.error(e);
                 return false;
@@ -1378,7 +1378,7 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
             method: this.options.method,
             success: this.options.success,
             invalid: this.invalid,
-            scope: this.options.scope || this,
+            context: this.options.context || this,
             data: data,
             dataType: this.options.dataType,
             url: this.options.url
@@ -1467,7 +1467,7 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
             iframe.bind('load', function()
             {
                 var msg = $(iframe[0].contentDocument.body).html();
-                element.options.success.call(element.options.scope || element, msg);
+                element.options.success.call(element.options.context || element, msg);
                 return true;
             });
         }
@@ -1856,7 +1856,7 @@ Tea.Field.object = Tea.Field.subclass('Tea.Field.object', {
                     } catch(e) { console.error(e) }
                     this.hideList();
                 },
-                scope: this
+                context: this
             })
             
             var dim = {
@@ -2086,7 +2086,7 @@ Tea.List = Tea.Container.subclass('Tea.List', {
         itemCls: 'Tea.ListItem',
         value: null,
         onSelect: null,
-        scope: null
+        context: null
     },
     __init__ : function()
     {
@@ -2119,7 +2119,7 @@ Tea.List = Tea.Container.subclass('Tea.List', {
         this.trigger('select', item);
         
         if (this.options.onSelect)
-            this.options.onSelect.call(this.options.scope || this, item);
+            this.options.onSelect.call(this.options.context || this, item);
     },
     hoverNext : function()
     {   
@@ -2256,7 +2256,7 @@ Tea.List = Tea.Container.subclass('Tea.List', {
             return;
         
         this.resource.load({
-            scope: this,
+            context: this,
             onLoad : function(v) { 
                 this.setValue(v, true);
             }
@@ -2426,7 +2426,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
         value: null,
         params: {},
         onLoad : null,
-        scope: null
+        context: null
     },
     __init__ : function()
     {
@@ -2441,7 +2441,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
             {
                 this.setValue(value);
                 if (opts.onLoad)
-                    opts.onLoad.call(options.scope || this, this.value);
+                    opts.onLoad.call(options.context || this, this.value);
                 this.trigger('load', this.value);
             },
             data: this.params,
@@ -2449,7 +2449,7 @@ Tea.Resource = Tea.Class('Tea.Resource', {
         }
         
         jQuery.extend(opts, options);
-        opts.scope = this;
+        opts.context = this;
         
         Tea.ajax(opts);
     },
@@ -2869,7 +2869,7 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
         var standard = {
             url: this.options.url,
             get: this.getRef(),
-            scope: this,
+            context: this,
             success: function(data)
             {
                 this._pk = data.pk;
@@ -2906,7 +2906,7 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
         var standard = {
             url: this.options.url,
             post: this.getRef(data),
-            scope: this,
+            context: this,
             success: function(data)
             {
                 this._pk = data.pk;
@@ -2941,7 +2941,7 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
         var standard = {
             url: this.options.url,
             method: 'get',
-            scope: this,
+            context: this,
             get: this.getRef({action: 'delete'}),
             success: function(deleted)
             {
@@ -3389,7 +3389,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
         icon: '',
         disabled: false,
         click: null,
-        scope: null
+        context: null
     },
     __init__ : function()
     {
@@ -3454,7 +3454,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     {
         if (this.disabled || typeof(this.options.click) != 'function') return false;
         
-        this.options.click.apply(this.options.scope || this);
+        this.options.click.apply(this.options.context || this);
     }
 })
 

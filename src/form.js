@@ -11,7 +11,7 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         success: null,
         callback: null,
         dataType: 'json',
-        scope: null,
+        context: null,
         method: 'post',
         submit: null,
         focus: true,
@@ -46,12 +46,12 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         this.each(function() { if (this.name) data[this.name] = this.getValue() });
         
         if (this.filter)
-            data = this.filter.call(this.scope || this, data);
+            data = this.filter.call(this.context || this, data);
         
         if (this.submit)
         {
             try {
-                return this.submit.call(this.scope || this, data);
+                return this.submit.call(this.context || this, data);
             } catch(e) { 
                 console.error(e);
                 return false;
@@ -62,7 +62,7 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
             method: this.method,
             success: this.success,
             invalid: this.invalid,
-            scope: this.scope || this,
+            context: this.context || this,
             data: data,
             dataType: this.dataType,
             url: this.url
@@ -151,7 +151,7 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
             iframe.bind('load', function()
             {
                 var msg = $(iframe[0].contentDocument.body).html();
-                element.success.call(element.scope || element, msg);
+                element.success.call(element.context || element, msg);
                 return true;
             });
         }
@@ -540,7 +540,7 @@ Tea.Field.object = Tea.Field.subclass('Tea.Field.object', {
                     } catch(e) { console.error(e) }
                     this.hideList();
                 },
-                scope: this
+                context: this
             })
             
             var dim = {

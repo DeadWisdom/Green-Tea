@@ -13,7 +13,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
         icon: '',
         disabled: false,
         click: null,
-        scope: null
+        context: null
     },
     __init__ : function()
     {
@@ -78,7 +78,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     {
         if (this.disabled || typeof(this.click) != 'function') return false;
         
-        this.click.apply(this.scope || this);
+        this.click.apply(this.context || this);
     }
 })
 

@@ -8,26 +8,17 @@
  **/
 
 Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
-    actions: {},
-    __init__ : function(options)
-    {
-        this.__super__(options);
-        
-        for( var k in this.actions ) {
-            this[k] = this.actions[k];
-        }
-    },
     options: {
-        model: null,
-        root: null,
+        url: null,
+        actions: ['query', 'load', 'save', 'del'],
         query: function() {
             return {
-                url: (this.root || Tea.root) + '/' + this._model + '/*.json'
+                url: this.url + '/*.json'
             }
         },
         load: function(object) {
             return { 
-                url: (this.root || Tea.root) + '/' + object._model + '/' + object._pk + '.json' 
+                url: this.url + '/' + object._pk + '.json' 
             } 
         },
         save: function(object) {
@@ -35,7 +26,7 @@ Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
             if (object._pk)
                 pk = object._pk;
             return {
-                url: (this.options.root || Tea.root) + '/' + object._model + '/' + pk + '.json', 
+                url: this.url + '/' + pk + '.json', 
                 method: 'post', 
                 params: {value: object} 
             }
@@ -43,11 +34,12 @@ Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
         del: function(object)
         {
             return { 
-                url: (this.options.root || Tea.root) + '/' + object._model + '/' + object._pk + '.json'
-                params: { delete: true },
+                url: this.url + '/' + object._pk + '.json'
+                params: { delete: "delete" },
+                method: 'delete'
             }
         }
-    },
+    }
 });
 
 
@@ -137,6 +129,10 @@ Tea.orm.Session = Tea.Class('Tea.orm.Session',
         for(var i = 0; i < this._ops.length; i++)
         {
             var op = this._ops[i];
+            var action = op[0];
+            var model = op[1];
+            Tea.ajax()
+            this._resources[op[0]];
             if (op[0] == 'delete') { 
                 this._resources[op[0]].del()
             }

@@ -585,22 +585,22 @@ Tea.ajax = function(options, overriding)
     var success = options.success;
     var failure = options.failure;
     var invalid = options.invalid;
-    var scope = options.scope;
+    var context = options.context;
     
     options.success = function(response)
     {   
         if (response && response.__errors__ && invalid) {
-            return invalid.call(scope, response);
+            return invalid.call(context, response);
         }
         
         if (success)
-            return success.call(scope, response);
+            return success.call(context, response);
     }
     
     if (failure)
         options.error = function(response)
         {
-            return failure.apply(scope);
+            return failure.apply(context);
         }/*
     else
         options.error = function(response)
@@ -613,7 +613,7 @@ Tea.ajax = function(options, overriding)
     options.type = options.method;
     
     delete options.method;
-    delete options.scope;
+    delete options.context;
     return jQuery.ajax(options);
 }
 
@@ -622,7 +622,7 @@ Tea._ajax_default = {
     method: 'get',
     data: {},
     dataType: 'json',
-    scope: null,
+    context: null,
     
     /*
     async: true,

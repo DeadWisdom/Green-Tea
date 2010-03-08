@@ -11,7 +11,7 @@ Tea.Route = Tea.Object.subclass({
         dataType: 'json',
         success: null,
         failure: null,
-        scope: null,
+        context: null,
         
         async: true,
         beforeSend: null,
@@ -93,9 +93,9 @@ Tea.Route = Tea.Object.subclass({
     {
         return this.clone({failure: func});
     },
-    scope : function(obj)
+    context : function(obj)
     {
-        return this.clone({scope: obj})
+        return this.clone({context: obj})
     },
     call : function()
     {

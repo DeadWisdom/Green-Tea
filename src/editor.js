@@ -22,7 +22,7 @@ App.Editor = Tea.Panel.subclass('App.Editor', {
             {
                 this.save();
             },
-            scope: this
+            context: this
         })
         
         this.buttons.del = new App.Button({
@@ -33,14 +33,14 @@ App.Editor = Tea.Panel.subclass('App.Editor', {
             {
                 this.del();
             },
-            scope: this
+            context: this
         })
         
         this.buttons.cancel = new App.Button({
             text: 'Cancel', 
             icon: 'CancelIcon',
             click: function() { this.close() },
-            scope: this
+            context: this
         })
         this.options.bottom = [this.buttons.cancel, this.buttons.save, this.buttons.del];
         

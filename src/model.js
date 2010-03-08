@@ -141,7 +141,7 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
         var standard = {
             url: this.options.url,
             get: this.getRef(),
-            scope: this,
+            context: this,
             success: function(data)
             {
                 this._pk = data.pk;
@@ -178,7 +178,7 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
         var standard = {
             url: this.options.url,
             post: this.getRef(data),
-            scope: this,
+            context: this,
             success: function(data)
             {
                 this._pk = data.pk;
@@ -213,7 +213,7 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
         var standard = {
             url: this.options.url,
             method: 'get',
-            scope: this,
+            context: this,
             get: this.getRef({action: 'delete'}),
             success: function(deleted)
             {
