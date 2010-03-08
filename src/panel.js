@@ -15,10 +15,10 @@ Tea.Panel = Tea.Container.subclass('Tea.Panel', {
     setTitle : function(title)
     {
         this.title = title;
-        if (this.source)
+        if (this.isRendered())
             this.skin.setTitle(title);
         else
-            this.options.title = title;
+            this.title = title;
     },
     getTitle : function()
     {
@@ -49,7 +49,7 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
         var element = this.element;
         
         this.content = $("<div class='t-content'/>");
-        this.title = $("<div class='t-title'/>").append(element.options.title || '');
+        this.title = $("<div class='t-title'/>").append(element.title || '');
 
         var anchor = this.anchor = $("<a class='t-focuser' href='#'>&#160;</a>");        
 
@@ -80,9 +80,9 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
         this.source.append(this.title);
         this.source.append(this.content);
         
-        this.setBars(element.options.top, element.options.bottom);
+        this.setBars(element.top, element.bottom);
         
-        if (element.options.closable)
+        if (element.closable)
             this.closer = $("<div class='t-close t-icon CloseIcon'></div>")
                             .appendTo(this.title)
                             .click(function() { element.close() });
@@ -122,12 +122,12 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
     },
     focus : function()
     {
-        if (!this.source)
+        if (!this.isRendered())
         {
             var self = this;
             setTimeout(function() {
                 self.anchor.focus();
-            })
+            });
         }
         this.anchor.focus();
     },

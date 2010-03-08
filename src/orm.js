@@ -22,12 +22,12 @@ Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
         root: null,
         query: function() {
             return {
-                url: (this.options.root || Tea.root) + '/' + this._model + '/*.json'
+                url: (this.root || Tea.root) + '/' + this._model + '/*.json'
             }
         },
         load: function(object) {
             return { 
-                url: (this.options.root || Tea.root) + '/' + object._model + '/' + object._pk + '.json' 
+                url: (this.root || Tea.root) + '/' + object._model + '/' + object._pk + '.json' 
             } 
         },
         save: function(object) {

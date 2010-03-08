@@ -20,15 +20,14 @@ Tea.Element = Tea.Class('Tea.Element', {
         cls: null,
         hidden: false,
         behaviors: [],
-        attrs: {},
-        bind: {},
+        attrs: {}
     },
     __init__ : function(options) {
+        this.__rendered = false;
         this.__super__(options);
         this.parent = null;
-        this.source = null;
         
-        var skin = this.options.skin;
+        var skin = this.skin;
         if (typeof skin == 'string')
             this.skin = new (Tea.getClass(skin))(this);
         else if (typeof skin == 'function')
@@ -46,38 +45,40 @@ Tea.Element = Tea.Class('Tea.Element', {
             if (skinCls)
                 this.skin = new skinCls(this);
             else
-                throw new Error("Element.options.skin is set to null, but no skin can be found.");
+                throw new Error("Element.skin is set to null, but no skin can be found.");
         }
         else
-            throw new Error("Element.options.skin must be set to null, a function, or a string which cooresponds to a Skin class.");
+            throw new Error("Element.skin must be set to null, a function, or a string which cooresponds to a Skin class.");
     },
     render : function(source) {
-        if (this.source) return this.source;
+        if (this.__rendered) return this.source;
         
         if (source)
             this.source = this.skin.render($(source));
         else
             this.source = this.skin.render();
         
-        if (this._latentBinds)
-            for (var i in this._latentBinds)
-                this.addEventListener.apply(this, this._latentBinds[i]);
-            
-        if (this.options.bind)
-            for(var k in this.options.bind)
-                this.bind(k, Tea.method(this.options.bind[k], this.options.scope || this));
+        if (this.__latentBinds)
+            for (var i in this.__latentBinds)
+                this.addEventListener.apply(this, this.__latentBinds[i]);
         
-        var behaviors = this.options.behaviors;
+        var behaviors = this.behaviors;
         if (behaviors && behaviors.length > 0)
             for(var i = 0; i < behaviors.length; i++)
                 this.addBehavior(behaviors[i]);
         
         this.onRender();
         
+        this.__rendered = true;
+        
         return this.source;
     },
     onRender : function()
     {},
+    isRendered : function()
+    {
+        return this.__rendered;
+    },
     remove : function()  // Remove from element's parent and source's parent
     {
         if (this.parent)
@@ -89,11 +90,11 @@ Tea.Element = Tea.Class('Tea.Element', {
     },
     addEventListener : function(type, handle)    // For events, binds any dom events to the source.
     {
-        if (!this.source)
+        if (!this.__rendered)
         {
-            if (!this._latentBinds)
-                this._latentBinds = [];
-            return this._latentBinds.push([type, handle]);
+            if (!this.__latentBinds)
+                this.__latentBinds = [];
+            return this.__latentBinds.push([type, handle]);
         }
         
         for(var i = 0; i < this.source.length; i++)
@@ -129,49 +130,47 @@ Tea.Element = Tea.Class('Tea.Element', {
     },
     setHidden : function(flag)
     {
-        if (this.source)
+        if (this.__rendered)
             this.skin.setHidden(flag);
         else
-            this.options.hidden = flag;
+            this.hidden = flag;
     },
     setHTML : function(html)
     {
-        if (this.source)
+        if (this.__rendered)
             this.skin.setHTML(html)
         else
-            this.options.html = html;
+            this.html = html;
     }
 });
 
 Tea.Element.Skin = Tea.Object.subclass('Tea.Element.Skin', {
-    options : {
-        
-    },
+    options: {},
     __init__ : function(element)
     {
         this.__super__();
         this.element = element;
-        this.source = element.options.source;
+        this.source = element.source;
     },
     render : function(source) {
         var element = this.element;
-        var options = element.options;
-        var source  = this.source = element.source = $(source || options.source);
         
-        if (options.id)         source.attr('id', options.id);
-        if (options.cls)        source.addClass(options.cls);
-        if (this.options.cls)   source.addClass(this.options.cls);
-        if (options.html)       this.setHTML(options.html);
+        var source  = this.source = element.source = $(source || element.source);
         
-        if (options.attrs)
-            for(a in options.attrs)
-                source.attr(a, options.attrs[a]);
+        if (element.id)         source.attr('id', element.id);
+        if (element.cls)        source.addClass(element.cls);
+        if (this.cls)           source.addClass(this.cls);
+        if (element.html)       this.setHTML(element.html);
         
-        if (options.style)
-            for(var i in options.style)
-                source.css(i, options.style[i]);
+        if (element.attrs)
+            for(a in element.attrs)
+                source.attr(a, element.attrs[a]);
         
-        if (options.hidden)
+        if (element.style)
+            for(var i in element.style)
+                source.css(i, element.style[i]);
+        
+        if (element.hidden)
             source.hide();
         
         return source;

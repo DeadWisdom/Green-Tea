@@ -137,7 +137,9 @@ Tea.Object.prototype.__init__ = function(options) {
     Sets the options of the instance, using the instance's constructor's options as a base.
     Note: this is a classmethod, not on the instance.
  **/
-Tea.Object.setOptions = function(instance, options) { instance.options = jQuery.extend({}, instance.constructor.prototype.options, options) };
+Tea.Object.setOptions = function(instance, options) { 
+    jQuery.extend(instance, instance.constructor.prototype.options, options)
+};
 
 // Subclassing
 Tea.Object.__subclass__ = function(base, name, extra)
@@ -674,7 +676,7 @@ Tea.method = function(func, context)
     }
 }
 
-/** Tea.metronome(milliseconds, func, context)
+/** Tea.latent(milliseconds, func, context)
     Calls the given function {{{func}}} after the given {{{milliseconds}}} with
     a {{{this}}} of {{{context}}}.
     
@@ -684,11 +686,11 @@ Tea.method = function(func, context)
     This is great for things like auto-complete, where you want to cancel and
     refresh the timer every time a key is hit
     
-    You can easily bind a metronome to an event, the following code will run 
+    You can easily bind a latent to an event, the following code will run 
     the method "onKeyup" on "this" 300 milliseconds after the last keyup event 
     of a series:
     
-    {{{ $(window).keyup( Tea.metronome(300, this.onKeyup, this) )}}}
+    {{{ $(window).keyup( Tea.latent(300, this.onKeyup, this) )}}}
     
     The function returned also provides a few extra methods on the function,
     itself:
@@ -704,7 +706,7 @@ Tea.method = function(func, context)
         this.log("Hello World!");
     }
     
-    hello = metronome(hello, console, 1000);
+    hello = latent(hello, console, 1000);
     hello();
     hello();
     hello();
@@ -726,7 +728,7 @@ Tea.method = function(func, context)
     }}}
  **/
  
-Tea.metronome = function(milliseconds, func, context)
+Tea.latent = function(milliseconds, func, context)
 {
     var timeout = null;
     var args = null;

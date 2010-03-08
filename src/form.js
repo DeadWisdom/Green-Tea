@@ -35,7 +35,7 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
     },
     _submit : function(options)
     {   
-        if (this.options.type == 'iframe')
+        if (this.type == 'iframe')
         {
             this.trigger('submit');
             return true;
@@ -45,13 +45,13 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         
         this.each(function() { if (this.name) data[this.name] = this.getValue() });
         
-        if (this.options.filter)
-            data = this.options.filter.call(this.scope || this, data);
+        if (this.filter)
+            data = this.filter.call(this.scope || this, data);
         
-        if (this.options.submit)
+        if (this.submit)
         {
             try {
-                return this.options.submit.call(this.options.scope || this, data);
+                return this.submit.call(this.scope || this, data);
             } catch(e) { 
                 console.error(e);
                 return false;
@@ -59,13 +59,13 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         }
         
         var options = jQuery.extend({
-            method: this.options.method,
-            success: this.options.success,
+            method: this.method,
+            success: this.success,
             invalid: this.invalid,
-            scope: this.options.scope || this,
+            scope: this.scope || this,
             data: data,
-            dataType: this.options.dataType,
-            url: this.options.url
+            dataType: this.dataType,
+            url: this.url
         }, options);
         
         Tea.ajax(options);
@@ -136,12 +136,12 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
     {
         var element = this.element;
         
-        var source = source || $('<form/>').attr('method', element.options.method).attr('action', element.options.url || '.');
+        var source = source || $('<form/>').attr('method', element.method).attr('action', element.url || '.');
 
-        if (element.options.upload)
+        if (element.upload)
             source.attr('enctype', "multipart/form-data");
             
-        if (element.options.type == 'iframe')
+        if (element.type == 'iframe')
         {
             var iframe = $('<iframe class="t-hidden" src="#" style="width:0;height:0;border:0px solid #fff;"/>');
             var id = "upload-iframe-" + (Tea.Form.iframeCount++);
@@ -151,7 +151,7 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
             iframe.bind('load', function()
             {
                 var msg = $(iframe[0].contentDocument.body).html();
-                element.options.success.call(element.options.scope || element, msg);
+                element.success.call(element.scope || element, msg);
                 return true;
             });
         }
@@ -159,15 +159,15 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
         source = Tea.Form.Skin.supertype.render.call(this, source);
         source.submit(function() { 
             if (!element.validate()) return false;
-            if (element.options.type == 'classic') return true;
+            if (element.type == 'classic') return true;
             
             return element._submit();
         });
         
         source.append('<input type="submit" style="display: none;"/>');
         
-        if (element.options.value)
-            element.setValue(element.options.value);
+        if (element.value)
+            element.setValue(element.value);
         
         return source;
     }
@@ -184,10 +184,10 @@ Tea.Field = Tea.Element.subclass('Tea.Field', {
     {   
         Tea.Field.supertype.__init__.apply(this, arguments);
         
-        this.name = this.options.name;
-        this.type = this.options.type;
-        this.label = this.options.label;
-        this.model = (this.options.model ? Tea.getClass(this.options.model) : null);
+        this.name = this.name;
+        this.type = this.type;
+        this.label = this.label;
+        this.model = (this.model ? Tea.getClass(this.model) : null);
         this.errors = null;
         this.field = null;
         this._value = null;
@@ -198,7 +198,7 @@ Tea.Field = Tea.Element.subclass('Tea.Field', {
     },
     getLabel : function()
     {
-        return jQuery('<label/>').append(this.options.label || this.name);
+        return jQuery('<label/>').append(this.label || this.name);
     },
     getValue : function()
     {
@@ -269,19 +269,19 @@ Tea.Field.Skin = Tea.Element.Skin.subclass('Tea.Field.Skin', {
         
         if (element._value)
             element.setValue(element._value);
-        else if (element.options.value)
-            element.setValue(element.options.value);
+        else if (element.value)
+            element.setValue(element.value);
         
         if (this.label)
             this.source.append(this.label);
         this.source.append(this.field);
         
-        if (element.options.hidden)
+        if (element.hidden)
             this.source.hide();
         
-        if (element.options.field_attrs)
-            for(a in element.options.field_attrs)
-                this.field.attr(a, element.options.field_attrs[a]);
+        if (element.field_attrs)
+            for(a in element.field_attrs)
+                this.field.attr(a, element.field_attrs[a]);
         
         if (this._focus)
             this.field.focus();
@@ -354,7 +354,7 @@ Tea.Field.static = Tea.Field.subclass('Tea.Field.static', {
 
 Tea.Field.select = Tea.Field.subclass('Tea.Field.select', {
     getField : function() {
-        this.choices = this.options.choices;
+        this.choices = this.choices;
         var field = $('<select/>').attr('name', this.name);    
         
         this.values = {};
@@ -503,17 +503,17 @@ Tea.Field.object = Tea.Field.subclass('Tea.Field.object', {
         if (this.timeout) clearTimeout(this.timeout);
         
         var val = this.search_item.input.val();
-        if (val.length < this.options.minLength)
+        if (val.length < this.minLength)
             return this.hideList();
         
         var self = this;
-        this.timeout = setTimeout( function(){ self.onChange(e) }, this.options.delay);
+        this.timeout = setTimeout( function(){ self.onChange(e) }, this.delay);
         return;
     },
     onChange : function(e)
     {       
         var term = this.search_item.input.val();
-        if (term.length < this.options.minLength)
+        if (term.length < this.minLength)
             return this.hideList();
             
         this.showList();
@@ -528,11 +528,11 @@ Tea.Field.object = Tea.Field.subclass('Tea.Field.object', {
         
         if (!this.list)
         {
-            this.pool = this.options.pool;
+            this.pool = this.pool;
             
             this.list = new Tea.List({
                 cls: 't-dropdown',
-                value: this.options.pool,
+                value: this.pool,
                 onSelect: function()
                 {
                     try {

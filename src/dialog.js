@@ -16,7 +16,7 @@ Tea.Dialog = Tea.Panel.subclass('Tea.Dialog', {
     },
     show : function()
     {
-        if (!this.source)
+        if (!this.isRendered())
             this.render();
         this.skin.show();
         return this.source;
@@ -35,32 +35,32 @@ Tea.Dialog.Skin = Tea.Panel.Skin.subclass('Tea.Dialog.Skin', {
     {
         var element = this.element;
         var source = this.source;
-        source.appendTo(element.options.appendTo || document.body);
+        source.appendTo(element.appendTo || document.body);
         
         source.show();
         source.css('opacity', 0);
         source.css('position', 'absolute');
         source.css('top', -source.height());
         source.css('left', $(document).width()/2 - source.width()/2);    
-        if (element.options.placement == 'top')
+        if (element.placement == 'top')
             source.animate( {top: 20, 
-                             opacity: element.options.opacity}, 
-                            element.options.speed, element.options.easing);
-        else if (element.options.placement == 'center')
+                             opacity: element.opacity}, 
+                            element.speed, element.easing);
+        else if (element.placement == 'center')
             source.animate( {top: $(document).height()/2.5 - source.height()/2, 
-                             opacity: element.options.opacity}, 
-                            element.options.speed, element.options.easing );
+                             opacity: element.opacity}, 
+                            element.speed, element.easing );
              
-        if (element.options.time)
+        if (element.time)
         {
             var self = this;
-            setTimeout(function(){ self.hide() }, element.options.time);
+            setTimeout(function(){ self.hide() }, element.time);
         }
     },
     hide : function()
     {
         var self = this;
         var source = this.source;
-        source.fadeOut(this.element.options.speed, function() { source.remove() });
+        source.fadeOut(this.element.speed, function() { source.remove() });
     }
 })

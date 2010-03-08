@@ -19,16 +19,16 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     {
         Tea.Button.supertype.__init__.apply(this, arguments);
         
-        if (this.options.text)
-            this.setText(this.options.text);
-        if (this.options.icon)
-            this.setIcon(this.options.icon);
+        if (this.text)
+            this.setText(this.text);
+        if (this.icon)
+            this.setIcon(this.icon);
     },
     render : function()
     {
         Tea.Button.supertype.render.apply(this, arguments);
         
-        this.setDisabled(this.options.disabled);
+        this.setDisabled(this.disabled);
         
         if (this.text)
             this.skin.setText(this.text);
@@ -40,7 +40,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     setText : function(text)
     {
         this.text = text;
-        if (this.source)
+        if (this.isRendered())
             this.skin.setText(text);
     },
     getText : function()
@@ -50,7 +50,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     setIcon : function(icon)
     {
         this.icon = icon;
-        if (this.source)
+        if (this.isRendered())
             this.skin.setIcon(icon);
     },
     getIcon : function()
@@ -72,13 +72,13 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
         if (this.source)
             this.skin.setDisabled(this.disabled = bool);
         else
-            this.options.disabled = bool;
+            this.disabled = bool;
     },
     click : function()
     {
-        if (this.disabled || typeof(this.options.click) != 'function') return false;
+        if (this.disabled || typeof(this.click) != 'function') return false;
         
-        this.options.click.apply(this.options.scope || this);
+        this.click.apply(this.scope || this);
     }
 })
 
@@ -89,8 +89,8 @@ Tea.Button.Skin = Tea.Element.Skin.subclass('Tea.Button.Skin', {
     render : function() {
         var element = this.element;
         
-        this.icon = $("<div class='t-icon'/>").addClass(element.options.icon);
-        this.text = $("<div class='t-text'/>").append(element.options.text || '');
+        this.icon = $("<div class='t-icon'/>").addClass(element.icon);
+        this.text = $("<div class='t-text'/>").append(element.text || '');
         
         Tea.Button.Skin.supertype.render.call(this);
         
@@ -106,7 +106,7 @@ Tea.Button.Skin = Tea.Element.Skin.subclass('Tea.Button.Skin', {
             element.source.removeClass('t-active')
         });
         
-        if (element.options.click)
+        if (element.click)
             element.source.click(Tea.method(element.click, element));
             
         element.source.hover(

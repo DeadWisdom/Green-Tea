@@ -46,7 +46,7 @@ Tea.Template = Tea.Class({
     {
         var self = this;
         
-        return this.src.replace(this.options.re, 
+        return this.src.replace(this.re, 
             function(match, group, index, full)
             {
                 return self.getVar(group, context);
@@ -66,12 +66,12 @@ Tea.Template = Tea.Class({
             if (path[i] == '*') continue;
             value = value[path[i]];
             if (value == undefined)
-                if (this.options.missing_throws)
+                if (this.missing_throws)
                     throw new Error("Unable to find variable in context: " + path.join("."));
                 else
                     value = '';
         }
-        if (this.options.html_encode)
+        if (this.html_encode)
             value = value.replace(/&/g,'&amp;').replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
         return value;
     }

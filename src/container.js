@@ -13,15 +13,11 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     },
     __init__ : function(options)
     {
-        this.items = [];
         this.__super__(options);
-        
-        var items = this.options.items || [];
-        
-        if (items.constructor === Array)
-            for (var i = 0; i < items.length; i++) this.append(items[i]);
-        else
-            this.append(items);
+        var items = jQuery.makeArray(this.items);
+        this.items = [];
+        var container = this;
+        jQuery.each(items, function(){ container.append(this); })
     },
     /** Tea.Container.own(item)
         
@@ -54,7 +50,7 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         item._index = this.items.length;
         this.items.push(item);
         
-        if (this.source)
+        if (this.isRendered())
             this.skin.append(item.render());
         
         return item;
@@ -73,7 +69,7 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         for(var i=0; i < this.items.length; i++)
             this.items[i]._index = i;
         
-        if (this.source)
+        if (this.isRendered())
         {
             if (item._index == 0)
                 this.skin.prepend(item.render())
@@ -93,7 +89,7 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         if (item.parent !== this) return;
         
         this.items.splice(item._index, 1);
-        if (item.source)
+        if (item.isRendered())
             item.skin.remove();
             
         item.parent = null;
@@ -106,7 +102,7 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         for(var i=0; i < this.items.length; i++)
         {
             var item = this.items[i];
-            if (item.source)
+            if (item.isRendered())
                 item.skin.remove();
             item.parent = null;
         }
@@ -117,7 +113,7 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         for(var i=0; i < this.items.length; i++)
         {
             var item = this.items[i];
-            if (item.source)
+            if (item.isRendered())
                 item.skin.remove();
             item.parent = null;
         }

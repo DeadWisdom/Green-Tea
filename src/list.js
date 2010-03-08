@@ -11,7 +11,7 @@ Tea.List = Tea.Container.subclass('Tea.List', {
         itemCls: 'Tea.ListItem',
         value: null,
         onSelect: null,
-        scope: null
+        context: null
     },
     __init__ : function()
     {
@@ -22,16 +22,14 @@ Tea.List = Tea.Container.subclass('Tea.List', {
         this.hover = null;
         this.template = null;
         
-        if (this.options.template)
+        if (this.template)
         {
-            if (typeof this.options.template == 'string')
-                this.template = new Tea.Template(this.options.template);
-            else
-                this.template = this.options.template;
+            if (typeof this.template == 'string')
+                this.template = new Tea.Template(this.template);
         }
         
-        if (this.options.value)
-            this.setValue(this.options.value);
+        if (this.value)
+            this.setValue(this.value);
     },
     select : function( item )
     {
@@ -43,8 +41,8 @@ Tea.List = Tea.Container.subclass('Tea.List', {
         
         this.trigger('select', item);
         
-        if (this.options.onSelect)
-            this.options.onSelect.call(this.options.scope || this, item);
+        if (this.onSelect)
+            this.onSelect.call(this.context || this, item);
     },
     hoverNext : function()
     {   
@@ -146,8 +144,8 @@ Tea.List = Tea.Container.subclass('Tea.List', {
         {
             this.resource = value;
             this.refresh();
-            if (this.options.loading)
-                Tea.List.supertype.append.call(this, this.createItem( this.options.loading ) );
+            if (this.loading)
+                Tea.List.supertype.append.call(this, this.createItem( this.loading ) );
         }
         else
         {
@@ -181,7 +179,7 @@ Tea.List = Tea.Container.subclass('Tea.List', {
             return;
         
         this.resource.load({
-            scope: this,
+            context: this,
             onLoad : function(v) { 
                 this.setValue(v, true);
             }
@@ -220,14 +218,14 @@ Tea.ListItem = Tea.Element.subclass('Tea.ListItem', {
         this.list = null;
         this.selected = false;
         
-        if (this.options.template)
-            this.setTemplate(this.options.template);
+        if (this.template)
+            this.setTemplate(this.template);
             
-        if (this.options.value)
-            this.setValue(this.options.value);
+        if (this.value)
+            this.setValue(this.value);
             
-        if (this.options.list)
-            this.setList(this.options.list);
+        if (this.list)
+            this.setList(this.list);
     },
     setList : function(list)
     {
@@ -249,8 +247,6 @@ Tea.ListItem = Tea.Element.subclass('Tea.ListItem', {
         if (this.source)
             if (this.template)
                 this.skin.setValue( this.template.apply(v) );
-            else if (this.value.options && this.value.options.template)
-                this.skin.setValue( this.value.options.template.apply(v) );
             else
                 this.skin.setValue( v );
     },

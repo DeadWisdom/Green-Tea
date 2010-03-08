@@ -9,7 +9,7 @@ new Tea.Testing.Suite({
             },
             greet : function()
             {
-                return "Hello " + this.options.recipient + "!";
+                return "Hello " + this.recipient + "!";
             }
         })
         
@@ -47,14 +47,14 @@ new Tea.Testing.Suite({
         var uber = new One();
         var sub = new Two();
         
-        assertEqual(uber.options.a, 1);
-        assertEqual(uber.options.b, 2);
-        assertEqual(sub.options.a, 1);
-        assertEqual(sub.options.b, 'b');
+        assertEqual(uber.a, 1);
+        assertEqual(uber.b, 2);
+        assertEqual(sub.a, 1);
+        assertEqual(sub.b, 'b');
         
         var nother = new One({a: 'a'});
-        assertEqual(nother.options.a, 'a');
-        assertEqual(nother.options.b, 2);
+        assertEqual(nother.a, 'a');
+        assertEqual(nother.b, 2);
     },
     
     test_events : function()
@@ -108,7 +108,7 @@ new Tea.Testing.Suite({
         One.extend(Two);
         
         var o = new One();
-        assertEqual(o.options.one, 'one');
+        assertEqual(o.one, 'one');
         assertEqual(o.one, 'one');
         assertEqual(o.two, 2);
     },
