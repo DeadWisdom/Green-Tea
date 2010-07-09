@@ -14,24 +14,11 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         context: null,
         method: 'post',
         submit: null,
-        focus: true,
+        hasFocus: true,
         value: null,
         processor: null,
         upload: false,  // Uploading a file?
         type: 'ajax'    // classic, ajax, iframe
-    },
-    __init__ : function()
-    {
-        this.fields = {};
-        
-        Tea.Form.supertype.__init__.apply(this, arguments);
-    },
-    own : function( item )
-    {
-        item = Tea.Form.supertype.own.call( this, item );
-        if (item.name)
-            this.fields[item.name] = item;
-        return item;
     },
     _submit : function(options)
     {   
@@ -100,19 +87,6 @@ Tea.Form = Tea.Container.subclass('Tea.Form', {
         for(var key in this.fields)
             this.fields[key].clearErrors();
     },
-    setValue : function(value)
-    {
-        for(var key in this.fields)
-            if (value[key] != undefined)
-                this.fields[key].setValue(value[key]);
-    },
-    getValue : function()
-    {   
-        var gather = {};
-        for(var key in this.fields)
-            gather[key] = this.fields[key].getValue();
-        return gather;
-    },
     validate : function()
     {
         return true;
@@ -173,62 +147,44 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
     }
 });
 
-Tea.Field = Tea.Element.subclass('Tea.Field', {
+
+Tea.Field = Tea.Element.subclass('text', {
     options: {
         name: null,
         value: null,
         label: null,
-        skin: 'Tea.Field.Skin'
-    },
-    __init__ : function()
-    {   
-        Tea.Field.supertype.__init__.apply(this, arguments);
-        
-        this.name = this.name;
-        this.type = this.type;
-        this.label = this.label;
-        this.model = (this.model ? Tea.getClass(this.model) : null);
-        this.errors = null;
-        this.field = null;
-        this._value = null;
-    },
-    getField : function()
-    {
-        throw new Error("Abstract base class Tea.Field has no implimentation for getField().");
-    },
-    getLabel : function()
-    {
-        return jQuery('<label/>').append(this.label || this.name);
+        errors: null,
+        hasFocus: false,
+        disabled: false,
+        skin: 'Tea.Field.Skin',
+        disabled: false
     },
     getValue : function()
     {
-        var v = null;
-        
-        if (this.field)
-            v = this.field.val();
+        if (this.isRendered())
+            return this.skin.getValue();
         else
-            v = this._value;
-        
-        if (this.model)
-            return this.model.get( v );
-        return v;
+            return this.value;
     },
     setValue : function(v)
     {   
-        if (this.model)
-            v = v.pk;
-            
-        if (this.field)
-            this.field.val(v);
-        this._value = v;
+        this.value = v;
+        if (this.isRendered())
+            this.skin.setValue(v);
     },
     focus : function()
     {
-        this.skin.focus();
+        if (this.isRendered())
+            this.skin.focus();
+        else
+            this.hasFocus = true;
     },
     blur : function()
     {
-        this.skin.blur();
+        if (this.isRendered())
+            this.skin.blur();
+        else
+            this.hasFocus = false;
     },
     setErrors : function(error_list)
     {
@@ -246,162 +202,182 @@ Tea.Field = Tea.Element.subclass('Tea.Field', {
     {
         throw new Error("Not Implimented.");
     },
-    validate : function()
+    disable : function()
     {
-        
-    }
+        this.setDisabled(true);
+    },
+    enable : function()
+    {
+        this.setDisabled(false);
+    },
+    setDisabled : function(flag)
+    {
+        this.disabled = flag;
+        if (this.isRendered())
+            this.source.setDisabled(flag);
+    },
+    validate : function()
+    {}
 });
-
-Tea.Form.prototype.classes = Tea.Field;
 
 Tea.Field.Skin = Tea.Element.Skin.subclass('Tea.Field.Skin', {
     options : {
         cls: 't-field'
     },
-    render : function() 
+    render : function()
     {
         var element = this.element;
         
-        this.label = element.label = element.getLabel();
-        this.field = element.field = element.getField();
+        this.label = this.createLabel();
+        this.field = this.createField();
         
         Tea.Field.Skin.supertype.render.call(this);
         
-        if (element._value)
-            element.setValue(element._value);
-        else if (element.value)
-            element.setValue(element.value);
-        
-        if (this.label)
-            this.source.append(this.label);
+        this.source.append(this.label);
         this.source.append(this.field);
+        
+        if (element.value)
+            this.setValue(element.value);
+        if (element.label)
+            this.setLabel(element.label);
+        else if (element.name)
+            this.setLabel(element.name);
         
         if (element.hidden)
             this.source.hide();
-        
-        if (element.field_attrs)
-            for(a in element.field_attrs)
-                this.field.attr(a, element.field_attrs[a]);
-        
-        if (this._focus)
-            this.field.focus();
+            
+        if (element.hasFocus)
+            this.focus();
+            
+        if (element.disabled)
+            this.setDisabled(true);
         
         return this.source;
     },
+    createField : function()
+    {
+        return $('<input type="text"/>').attr('name', this.element.name);
+    },
+    createLabel : function()
+    {
+        return $('<label>');
+    },
+    setValue : function(v)
+    {
+        this.field.val(v);
+    },
+    getValue : function()
+    {
+        return this.field.val();
+    },
+    setLabel : function(v)
+    {
+        if (this.label)
+            this.label.html(v);
+    },
+    getLabel : function()
+    {
+        if (this.label)
+            return this.label.html();
+        return null;
+    },
     focus : function()
     {
-        if (this.source)
-            this.field.focus();
-        else
-            this._focus = true;
+        this.field.focus();
     },
     blur : function()
     {
-        if (this.source)
-            this.field.blur();
+        this.field.blur();
+    },
+    setDisabled : function(flag)
+    {
+        if (flag) 
+            this.field.attr("disabled", true);
         else
-            this._focus = false;
+            this.field.removeAttr("disabled");
     }
 })
 
-Tea.Field.text = Tea.Field.subclass('Tea.Field.text', {
-    getField : function() {  return $('<input type="text"/>').attr('name', this.name)  }
-})
-
-Tea.Field.hidden = Tea.Field.subclass('Tea.Field.hidden', {
+Tea.Field.hidden = Tea.Field.subclass('hidden', {
     options: {
-        hidden: true
-    },
-    getLabel : function() {  return null;  },
-    getField : function() {  return $('<input type="hidden"/>').attr('name', this.name)  }
-})
-
-Tea.Field.password = Tea.Field.subclass('Tea.Field.password', {
-    getField : function() {  return $('<input type="password"/>').attr('name', this.name)  }
-})
-
-Tea.Field.checkbox = Tea.Field.subclass('Tea.Field.checkbox', {
-    getField : function() {  return $('<input type="checkbox"/>').attr('name', this.name)  },
-    getValue : function() {  return this.field.attr('checked') },
-    setValue : function(v) { return this.field.attr('checked', v ? 'checked' : '') }
-})
-
-Tea.Field.textarea = Tea.Field.subclass('Tea.Field.textarea', {
-    getField : function() {  return $('<textarea/>').attr('name', this.name)  }
-})
-
-Tea.Field.static = Tea.Field.subclass('Tea.Field.static', {
-    getField : function() {  return $('<div class="t-static"/>').attr('name', this.name)  },
-    getValue : function()
-    {
-        var v = this._value;
-        if (this.field) v = this.field[0].innerHTML; 
-        
-        if (this.model)
-            return this.model.get( v );
-        return v;
-    },
-    setValue : function(v)
-    {
-        if (this.model)
-            v = v.pk;
-        
-        if (this.field) 
-            this.field[0].innerHTML = v;
-        this._value = v;
+        hidden: true,
+        skin: Tea.Field.Skin.subclass({
+            createLabel : function() {  return null;  },
+            createField : function() {  return $('<input type="hidden"/>').attr('name', this.element.name)  }
+        })
     }
 })
 
-Tea.Field.select = Tea.Field.subclass('Tea.Field.select', {
-    getField : function() {
-        this.choices = this.choices;
-        var field = $('<select/>').attr('name', this.name);    
-        
-        this.values = {};
-        this.indexes = {};
-        for(var i = 0; i < this.choices.length; i++)
-        {
-            var display, value = this.choices[i];
-            if (value.constructor === Array)
-            {
-                display = value[0];
-                value = value[1];
-            }
-            else
-            {
-                display = value;
-            }
-            var option = $('<option>' + display + '</option>');
-            field.append(option);
-            this.values[i] = value;
-            this.indexes[value] = i;
-        }
-        return field;
-    },
-    getValue : function()
-    {
-        var v;
-        if (this.field)
-            v = this.values[this.field[0].selectedIndex];
-        else
-            v = this.values[this._value];
-        
-        if (this.model)
-            v = this.model.get( v ).getRef();
-            
-        return v;
-    },
-    setValue : function(v)
-    {   
-        if (v._model)
-            v = v._pk;
-            
-        if (this.field)
-            this.field[0].selectedIndex = this.indexes[v];
-        
-        this._value = this.indexes[v];
+Tea.Field.password = Tea.Field.subclass('password', {
+    options: {
+        skin: Tea.Field.Skin.subclass({
+            createField : function() {  return $('<input type="password"/>').attr('name', this.element.name)  }
+        })
     }
 })
+
+Tea.Field.checkbox = Tea.Field.subclass('checkbox', {
+    options: {
+        skin: Tea.Field.Skin.subclass({
+            createField : function() {  return $('<input type="checkbox"/>').attr('name', this.element.name)  },
+            getValue : function() {  return this.field.attr('checked') },
+            setValue : function(v) { this.field.attr('checked', v ? 'checked' : '') }
+        })
+    }
+})
+
+Tea.Field.textarea = Tea.Field.subclass('textarea', {
+    options: {
+        skin: Tea.Field.Skin.subclass({
+            createField : function() {  return $('<textarea/>').attr('name', this.element.name)  }
+        })
+    }
+})
+
+Tea.Field.static = Tea.Field.subclass('static', {
+    options: {
+        skin: Tea.Field.Skin.subclass({
+            createField : function() { return $('<div class="t-static"/>').attr('name', this.element.name)  },
+            getValue : function() { return this.field.html() },
+            setValue : function(v) { this.field.html(v) },
+        })
+    }
+});
+
+Tea.Field.select = Tea.Field.subclass('select', {
+    options: {
+        skin: Tea.Field.Skin.subclass({
+            createField : function() {
+                var field = $('<select/>').attr('name', this.element.name);    
+        
+                this.values = {};
+                this.indexes = {};
+                for(var i = 0; i < this.element.choices.length; i++)
+                {
+                    var display;
+                    var value = this.element.choices[i];
+                    
+                    if (value.constructor === Array)
+                    {
+                        display = value[1];
+                        value = value[0];
+                    }
+                    else
+                    {
+                        display = value;
+                    }
+                    var option = $('<option>' + display + '</option>');
+                    field.append(option);
+                    this.values[i] = value;
+                    this.indexes[value] = i;
+                }
+                return field;
+            },
+            getValue : function() { return this.values[this.field[0].selectedIndex] },
+            setValue : function(v) { this.field[0].selectedIndex = this.indexes[v] }
+        })
+    }
+});
 
 Tea.Field.object = Tea.Field.subclass('Tea.Field.object', {
     options: {

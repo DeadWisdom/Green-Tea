@@ -66,7 +66,7 @@ Tea.registerClass = function(name, type) { Tea.classes[name] = type }
  **/
 Tea.getClass = function(cls)
 { 
-    if (typeof cls == 'function') return cls;
+    if (jQuery.isFunction(cls)) return cls;
     return Tea.classes[cls];
 }
 
@@ -104,8 +104,13 @@ Tea.overrideMethod = function(super_func, func)
 Tea.manifest = function(obj, search_space)
 {
     if (search_space == null) search_space = Tea.classes;
-    if (typeof obj == 'string') return new search_space[obj]();
-    if (typeof obj == 'function') return new obj();
+    if (typeof obj == 'string') {
+        if (search_space[obj])
+            obj = search_space[obj];
+        else
+            throw new Error("Unable to find class: " + obj);
+    }
+    if (jQuery.isFunction(obj)) return new obj();
     if (obj.constructor != Object) return obj;
     
     var cls = obj.type;
@@ -123,14 +128,16 @@ Tea.manifest = function(obj, search_space)
     
     Tea.Class(name, properties) is a synonym for: Tea.Object.subclass(name, properties)
  **/
-Tea.Object = function() { this.__init__.apply(this, arguments); }
+Tea.Object = function() {
+    this.__init__.apply(this, arguments);
+}
 Tea.registerClass('Tea.Object', Tea.Object);
 
 Tea.Object.prototype.__init__ = function(options) { 
     Tea.Object.setOptions(this, options)
-    if (this.onInit)
-        this.onInit.apply(this, arguments);
 };
+
+Tea.Object.prototype.init = jQuery.noop;
 
 // Options
 /** Tea.Object.setOptions(instance, options)
@@ -138,7 +145,9 @@ Tea.Object.prototype.__init__ = function(options) {
     Note: this is a classmethod, not on the instance.
  **/
 Tea.Object.setOptions = function(instance, options) { 
-    jQuery.extend(instance, instance.constructor.prototype.options, options)
+    options = jQuery.extend({}, instance.constructor.prototype.options, options);
+    jQuery.extend(instance, options)
+    instance.options = options;
 };
 
 // Subclassing
@@ -151,12 +160,13 @@ Tea.Object.__subclass__ = function(base, name, extra)
         if (typeof(this.__init__) != 'function')
             throw "You probably tried to create a Tea object without using the 'new' keyword.  e.g. var object = Tea.Object() should be var object = new Tea.Object()."
         
-        this.__init__.apply(this, arguments); 
+        this.__init__.apply(this, arguments);
+        this.init.apply(this, arguments);
     }  // Constructor.
     jQuery.extend(sub.prototype, base.prototype, extra);            // Extend the subclass by the base and the extra object.
     for(k in base.prototype)
     {
-        if (typeof(base.prototype[k]) == 'function' && typeof(sub.prototype[k]) == 'function')
+        if (jQuery.isFunction(base.prototype[k]) && jQuery.isFunction(sub.prototype[k]))
         {
             sub.prototype[k] = Tea.overrideMethod(base.prototype[k], sub.prototype[k]);
         }
@@ -318,7 +328,7 @@ Tea.Class = function() { return Tea.Object.subclass.apply(this, arguments); }
 
 
 /** Tea.Application
-    Nice structured way to organize your app.  init() is called when the page is ready, i.e. jQuery.ready.
+    Nice structured way to organize your app.  ready() is called when the page is ready, i.e. jQuery.ready.
 
     To setup the app, use .setup([properties]), where properties are extra properties to set on the object.
     
@@ -342,41 +352,6 @@ Tea.Application = Tea.Class('Tea.Application',
     
     ready : function(properties) {}
 })
-
-// Routes ////////
-Tea.routes = {};
-
-/** Tea.getRoute(name)
-    Returns the url of a named route.
-
-    name:
-        Name of the route.
- **/
-Tea.getRoute = function(name)
-{
-    return Tea.routes[name];
-}
-
-/** Tea.route([name, url] | object)
-    Creates a route, or named url, that can be used in ajax calls rather than the full url.
-    
-    name:
-        Name of the route.
-        
-    url:
-        Url to point to.
-        
-    object:
-        A mapping of {name: url}.
- **/
-Tea.route = function(name, url)
-{
-    if (typeof name == 'object')
-        jQuery.extend(Tea.routes, name);
-    else
-        Tea.routes[name] = url;
-}
-
 
 // JSON ///////
 
@@ -543,30 +518,13 @@ Tea.quoteString.meta = {
     '\\': '\\\\'
 };
 
-/** Tea.ajax(options)
+/** Tea.ajax(options, [overriding])
     Makes an ajax call to the given resource using jQuery.ajax.  Some options are
     automatically configured for you to make things easier.
     
     Tea.ajax will look up any Route with the name of the url you pass in.  The route's url is then
     replaced.  For instance if you had a route named 'document' that pointed to '/ajax/document/',
     you can use the options {url: 'document'}, which will then expand to: {url: '/ajax/document/'}.
-    
-    For callbacks, one can either over-ride 'callback' or, if either 'success' or 'failure' is given,
-    Tea will check the response object for a '__failure__' property.  If there, 'failure' will be
-    called.  If not there, 'success' will be called.
-    
-    options:
-        Everything that jQuery.ajax <http://docs.jquery.com/Ajax/jQuery.ajax#options> takes and:
-        post:
-            If post is an object, the method will be set to 'post' and this will be used for the data.
-        get:
-            If get is an object, the method will be set to 'get' and this will be used for the data.
-        dataType:
-            Tea defaults this to 'json', to get raw textual data back use 'raw'.
-        success:
-            A callback matching the signature 'function(response)' when the response succeeds.
-        failure:
-            A callback matching the signature 'function(response)' when the response fails.
     
     overriding:
         Shortcut to merge these overriding-options onto options.
@@ -575,45 +533,20 @@ Tea.ajax = function(options, overriding)
 {
     var options = jQuery.extend({}, Tea._ajax_default, options, overriding);
     
-    var route = Tea.getRoute(options.url);
-    if (route)
-        options.url = route;
-    
-    if (options.post) { options.method = 'post'; options.data = options.post; }
-    else if (options.get) { options.method = 'get'; options.data = options.get; }
-    
-    var success = options.success;
-    var failure = options.failure;
-    var invalid = options.invalid;
-    var context = options.context;
-    
-    options.success = function(response)
-    {   
-        if (response && response.__errors__ && invalid) {
-            return invalid.call(context, response);
-        }
-        
-        if (success)
-            return success.call(context, response);
-    }
-    
-    if (failure)
-        options.error = function(response)
-        {
-            return failure.apply(context);
-        }/*
-    else
-        options.error = function(response)
+    var error = options.error;
+    options.error = function(response, status, e)
+    {
+        if (status == 'error')
         {
             console.group('Server Error');
             console.log(response.responseText);
             console.groupEnd();
-        }*/
+        }
         
-    options.type = options.method;
-    
-    delete options.method;
-    delete options.context;
+        if (jQuery.isFunction(error))
+            return error.apply(options.context || window, context)
+    }
+
     return jQuery.ajax(options);
 }
 
@@ -623,7 +556,6 @@ Tea._ajax_default = {
     data: {},
     dataType: 'json',
     context: null,
-    
     /*
     async: true,
     beforeSend: null,
@@ -732,6 +664,7 @@ Tea.latent = function(milliseconds, func, context)
 {
     var timeout = null;
     var args = null;
+    context = context || this;
     
     function call()
     {

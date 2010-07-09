@@ -7,18 +7,26 @@
     by sqlalchemy.
  **/
 
+/** Tea.orm.Resource 
+    
+    A Tea resource is nothing but a mapping of names of "actions" to
+    functions that return objects suitable for Tea.ajax.  These actions
+    like "query", and "load" can then be used more uniformly.
+ **/
 Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
     options: {
         url: null,
         actions: ['query', 'load', 'save', 'del'],
         query: function() {
             return {
-                url: this.url + '/*.json'
+                url: this.url + '/*.json',
+                dataType: 'json'
             }
         },
         load: function(object) {
             return { 
-                url: this.url + '/' + object._pk + '.json' 
+                url: this.url + '/' + object._pk + '.json',
+                dataType: 'json'
             } 
         },
         save: function(object) {
@@ -26,20 +34,22 @@ Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
             if (object._pk)
                 pk = object._pk;
             return {
-                url: this.url + '/' + pk + '.json', 
+                url: this.url + '/' + pk + '.json',
                 method: 'post', 
-                params: {value: object} 
+                data: {value: this.toJSON(object)},
+                dataType: 'json'
             }
         },
         del: function(object)
         {
             return { 
                 url: this.url + '/' + object._pk + '.json'
-                params: { delete: "delete" },
-                method: 'delete'
+                data: { delete: "delete" },
+                method: 'delete',
+                dataType: 'json'
             }
         }
-    }
+    },
 });
 
 
@@ -52,19 +62,22 @@ Tea.orm.Resource = Tea.Class('Tea.orm.Resource', {
 Tea.orm.Session = Tea.Class('Tea.orm.Session',
 {
     options: {
-        lazy: false
+        lazy: false,
+        resources: [],
     },
     __init__ : function(options)
     {
         this.__super__(options);
         this._cache = {};
         this._resources = {};
-        this._ops = [];
-    },
+        this._actions = [];
+        
+        for(k in this.resources)
+            this.add_resource(k, this.resources[k]);
+    }
     add_resource : function(name, options)
     {
-        options.model = options.model || name;
-        this._resources[name] = new Tea.orm.Model(options);
+        this._resources[name] = new Tea.orm.Resource(options);
     },
     merge : function(obj)
     {
@@ -98,44 +111,106 @@ Tea.orm.Session = Tea.Class('Tea.orm.Session',
     },
     save : function(obj)
     {
-        var obj = this.merge(obj);
+        obj = this.merge(obj);
         
-        this._obj.push(['save', obj._model, obj._pk]);
-        
-        if (!this.options.lazy)
-            this.flush();
+        this.trigger('beforeSave', obj._model, obj);
+        this.queue('save', obj._model, obj);
         
         return obj
     },
+    saveSuccess : function(data, obj)
+    {
+        this.trigger('save', obj._model, obj, data);
+        jQuery.extend(obj, data);
+        obj.trigger('update', data);
+        obj.trigger('save');
+    },
     load : function(obj)
     {
-        this.merge
-        this._ops.push(['load', obj._model, obj._pk]);
+        obj = this.merge(obj);
+        this.queue('load', obj._model, obj);
         this.flush();
+    },
+    loadSuccess : function(data, obj)
+    {
+        this.trigger('load', obj._model, obj, data);
+        jQuery.extend(obj, data);
+        obj.trigger('update', data);
+        obj.trigger('load');
     },
     del : function(obj)
     {
         if (obj._pk == undefined || obj._pk == null)
             return;
         
-        this._ops.push(['del', obj._model, obj._pk]);
+        this.queue('del', obj._model, obj);
         obj._pk = null;
-        
-        if (!this.options.lazy)
-            this.flush();
     },
-    flush : function(options)
+    delSuccess : function(data, obj)
     {
-        for(var i = 0; i < this._ops.length; i++)
+        this.trigger('delete', obj, data);
+        jQuery.extend(obj, data);
+        obj.trigger('update', data);
+        obj.trigger('delete');
+    },
+    query : function(model, data, callback)
+    {
+        this.flush();
+        
+        var resource = this._resources[model];
+        options = resource['query']();
+        options.data = data;
+        
+        var self = this;
+        options.success = function(data)
         {
-            var op = this._ops[i];
-            var action = op[0];
-            var model = op[1];
-            Tea.ajax()
-            this._resources[op[0]];
-            if (op[0] == 'delete') { 
-                this._resources[op[0]].del()
+            var objects = [];
+            for(var i=0; i < data.length; i++)
+            {
+                var obj = self.merge(data[i]);
+                jQuery.extend(obj, data[i]);
+                obj.trigger('update', data[i]);
+                objects.push(obj)
             }
+            callback.call(this, objects);
+            this.trigger('query', objects);
+        };
+        
+        return Tea.ajax(options);
+    },
+    flush : function()
+    {
+        for(var i = 0; i < this._actions.length; i++)
+        {
+            var options = jQuery.extend({}, this._actions[i]);
+            options.success = function(data, status, request)
+            {
+                this[options._action + "Success"](data, options._object);
+            }
+            Tea.ajax(options);
         }
+    },
+    /** Tea.orm.Session.queue(name, model, [obj])
+        
+        Adds an action to be performed.  If we are not lazy, 
+        we then flush().
+        
+        Note: This is an internal function, and will not effect 
+              any objects on the client, but can on the server!
+     **/
+    queue : function(name, model, obj)
+    {
+        var resource = this._resources[model];
+        if (typeof obj == 'object')
+            var action = resource[name](obj);
+        else
+            var action = resource[name]();
+        action._action = name;
+        action._resource = resource;
+        action._object = obj;
+        this._actions.push(action);
+        if (!this.lazy)
+            this.flush();
+        return action;
     }
 })

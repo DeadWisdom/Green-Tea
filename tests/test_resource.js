@@ -4,9 +4,12 @@ new Tea.Testing.Suite({
     name: 'Tea.Resource',
     
     responses: {
-        load : function(params, method)
+        "/*.json" : function(params, method)
         {
-            return 'hello';
+            return [
+                {'name': 'hello'},
+                {'name': 'apple'}
+            ];
         }
     },
     
@@ -23,11 +26,15 @@ new Tea.Testing.Suite({
     test_load : function()
     {   
         var data = null;
-        var resource = new Tea.Resource({url: 'load'});
+        var resource = new Tea.Resource({url: '', key: 'name'});
         
-        resource.bind('load', function(value) { data = value });
-        resource.load();
+        resource.bind('update', function(objects) { data = objects[0] });
+        resource.query();
         
-        assertEqual(data, "hello");
+        assertEqual(data.name, "hello");
+        
+        assertEqual(resource.getList('name')[0].name, 'apple');
+        
+        resource.query();
     }
 })

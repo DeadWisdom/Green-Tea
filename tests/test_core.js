@@ -113,24 +113,6 @@ new Tea.Testing.Suite({
         assertEqual(o.two, 2);
     },
     
-    test_routes : function()
-    {
-        Tea.route('document', '/document/');
-        Tea.route('document.list', '/document/list/');
-        
-        assertEqual(Tea.getRoute('document'), '/document/');
-        assertEqual(Tea.getRoute('document.list'), '/document/list/');
-        
-        Tea.route({
-            'document' : '/ajax/document/',
-            'document.all' : '/ajax/document/all/'
-        });
-        
-        assertEqual(Tea.getRoute('document'), '/ajax/document/');
-        assertEqual(Tea.getRoute('document.all'), '/ajax/document/all/');
-        
-    },
-    
     test_json : function()
     {
         function testJSON(input, expected)

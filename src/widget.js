@@ -74,11 +74,21 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
         else
             this.disabled = bool;
     },
-    click : function()
+    performClick : function()
     {
-        if (this.disabled || typeof(this.click) != 'function') return false;
+        if (this.disabled) return false;
         
-        this.click.apply(this.context || this);
+        var context = this.context || this;
+        
+        try {
+            if (typeof(this.click) == 'string') return context[this.click].apply(context);
+            if (typeof(this.click) == 'function') return this.click.apply(context);
+        } catch(e) {
+            if (console && console.error)
+                console.error(e);
+        }
+        
+        return false;
     }
 })
 
@@ -107,7 +117,7 @@ Tea.Button.Skin = Tea.Element.Skin.subclass('Tea.Button.Skin', {
         });
         
         if (element.click)
-            element.source.click(Tea.method(element.click, element));
+            element.source.click(Tea.method(element.performClick, element));
             
         element.source.hover(
             function() {

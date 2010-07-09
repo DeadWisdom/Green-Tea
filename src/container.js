@@ -9,13 +9,15 @@
 
 Tea.Container = Tea.Element.subclass('Tea.Container', {
     options: {
-        items: null
+        items: null,
+        fields: null
     },
     __init__ : function(options)
     {
         this.__super__(options);
         var items = jQuery.makeArray(this.items);
         this.items = [];
+        this.fields = {};
         var container = this;
         jQuery.each(items, function(){ container.append(this); })
     },
@@ -41,7 +43,25 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
             
         item.parent = this;
         
+        if (item.name)
+            this.fields[item.name] = item;
+        
         return item;
+    },
+    setValue : function(value)
+    {
+        if (value == null || value == undefined) return;
+        
+        for(var key in this.fields)
+            if (value[key] != undefined)
+                this.fields[key].setValue(value[key]);
+    },
+    getValue : function()
+    {   
+        var gather = {};
+        for(var key in this.fields)
+            gather[key] = this.fields[key].getValue();
+        return gather;
     },
     append : function(item)
     {

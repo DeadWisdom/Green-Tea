@@ -4,7 +4,7 @@ Tea.require(
     '../tests/test_testing.js',
     '../tests/test_core.js',
     '../tests/test_template.js',
-    // '../tests/test_resource.js',  REBUILDING
+    '../tests/test_resource.js',
     '../tests/test_element.js',
     '../tests/test_container.js',
     //'../tests/test_list.js',       REBUILDING
@@ -12,8 +12,7 @@ Tea.require(
     '../tests/test_widget.js',
     '../tests/test_form.js',
     '../tests/test_dialog.js',
-    '../tests/test_stack.js',
-    '../tests/test_model.js'
+    '../tests/test_stack.js'
 );
 
 $(function()

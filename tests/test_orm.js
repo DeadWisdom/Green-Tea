@@ -22,41 +22,6 @@ new Tea.Testing.Suite({
     
     test_basic : function()
     {
-        var pages = new Tea.orm.Resource({
-            
-        });
-        
-        
-        Tea.route('test_model', '/test_model/');
-        
-        var model = Tea.Model('tests.Model', {
-            options: {
-                url: 'test_model'
-            }
-        });
-        
-        var state = null;
-        
-        var m = model.get(1);
-        
-        m.del({ success: function(options) { state = 'delete' } });
-        assertEqual(state, 'delete');
-        
-        m.bind('saved', function() { state = 'saved' });
-        m.bind('updated', function() { state = 'updated' });
-        m.bind('deleted', function() { state = 'deleted' });
-        
-        m.update();
-        assertEqual(state, 'updated');
-        
-        m.save();
-        assertEqual(state, 'saved');
-        
-        m.del();
-        assertEqual(state, 'deleted');
-        
-        same = model.get(1);
-        assertEqual(same._pk, 1);
-        assert(same === m);
+
     },
 })

@@ -97,12 +97,20 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
     setBars : function(top, bottom)
     {
         if (top) {
+            if (top.length)
+                for(var i = 0; i < top.length; i++) {
+                    top[i].context = this.element;
+                }
             this.top = new Tea.Container({cls: 't-bar t-top', items: top});
             this.top.panel = this.element;
             this.title.after(this.top.render());
         }
         if (bottom)
         {
+            if (bottom.length)
+                for(var i = 0; i < bottom.length; i++) {
+                    bottom[i].context = this.element;
+                }
             this.bottom = new Tea.Container({cls: 't-bar t-bottom', items: bottom});
             this.bottom.panel = this.element;
             this.content.after(this.bottom.render());

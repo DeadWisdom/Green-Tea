@@ -9,7 +9,7 @@ modules = [
     'Tea.Drag',
     #'Tea.List',
     'Tea.Panel',
-    #'Tea.Resource',
+    'Tea.Resource',
     'Tea.StackContainer',
     'Tea.Model',
     'Tea.Template',

@@ -11,7 +11,8 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
     options: {
         columns: 3,
         space: 4,
-        column_width: 350
+        column_width: 350,
+        __stack__: true
     },
     __init__ : function()
     {
@@ -76,6 +77,16 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
         }
         
         this.refresh();
+        return item;
+    },
+    own : function( item )
+    {
+        var item = this.__super__(item);
+        var self = this;
+        item.bind('close', function()
+        {
+            self.pop(item);
+        })
         return item;
     },
     remove : function( item )
@@ -174,8 +185,8 @@ Tea.StackContainer.StretchySkin = Tea.StackContainer.Skin.subclass("Tea.StackCon
         var result = Tea.StackContainer.StretchySkin.supertype.render.apply(this, arguments);
         
         $(window).resize( Tea.method(this.onResize, this) );
-        $(window).scroll( Tea.metronome(300, this.onScroll, this) );
-        $(window).scroll( Tea.metronome(300, this.onResize, this) );
+        $(window).scroll( Tea.latent(300, this.onScroll, this) );
+        $(window).scroll( Tea.latent(300, this.onResize, this) );
         
         return result;
     },
@@ -244,4 +255,18 @@ Tea.StackContainer.StretchySkin = Tea.StackContainer.Skin.subclass("Tea.StackCon
 	        self.correct(this);
 	    });
 	}
-})
+});
+
+Tea.pushStack = function(element, requester)
+{
+    var now = requester.parent;
+    var child = requester;
+    while(now) {
+        if (now.__stack__) {
+            return now.push(element, child);
+        }
+        child = now;
+        now = now.parent;
+    }
+    console.log("Fail.");
+}
