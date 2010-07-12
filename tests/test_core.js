@@ -128,6 +128,8 @@ Tea.Testing.Suite({
         
         testJSON(function() {}, undefined);
         testJSON(undefined, undefined);
+
+        testJSON(null, "null");
     },
     
     test_app : function()

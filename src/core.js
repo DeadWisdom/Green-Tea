@@ -2,7 +2,7 @@
     
     Complex UI framework based on jQuery.
 
-    Copyright (c) 2008 Brantley Harris. All rights reserved.
+    Copyright (c) 2010 Brantley Harris. All rights reserved.
  **/
 
 var Tea = {root: ''};
@@ -397,8 +397,7 @@ Tea.Application = Tea.Class('Tea.Application',
     
     setup : function(properties)
     {
-        if (properties)
-            $.extend(this, properties);
+        if (properties) $.extend(this, properties);
             
         var self = this;
         $(function(){ self.ready.call(self) });
@@ -629,6 +628,8 @@ Tea._ajax_default = {
     xhr: null
     */
 };
+
+
 /** Tea.deselect()
     Quick function to do a global deselect of all text that can pop-up during dragging or the like.
  **/
