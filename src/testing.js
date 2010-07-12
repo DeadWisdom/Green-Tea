@@ -31,9 +31,7 @@ Tea.Testing.run = function(suite, test)
     var suites = Tea.Testing.suites;
     var count = 0;
     var passed = 0;
-
-    console.log("Running tests...");
-        
+    
     for(var i = 0; i < suites.length; i++) 
     {
         if (suite && suites[i].name != suite) continue;
@@ -76,7 +74,7 @@ function assert(a, msg)
     Tea.Testing.fail(msg || 'assertion failed.');
 }
 
-Tea.Testing.Suite = Tea.Object.subclass('Tea.Testing.Suite', {
+Tea.Testing.Suite = Tea.Class('test-suite', {
     __init__ : function(attrs)
     {
         this._tests = [];
@@ -144,7 +142,7 @@ Tea.Testing.Suite = Tea.Object.subclass('Tea.Testing.Suite', {
     }
 });
 
-Tea.Testing.Test = Tea.Object.subclass('Tea.Testing.Test', {
+Tea.Testing.Test = Tea.Class('test', {
     __init__ : function(name, entry)
     {
         this.name = name;

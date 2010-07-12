@@ -15,8 +15,7 @@ var Tea = {root: ''};
     
     arguments:
         Strings of urls to the given resource.  If the string ends with .css, it is added with
-        a <style> tag; if it's a .js, it is added with a <script> tag.  If the string is in
-        Tea.
+        a <style> tag; if it's a .js, it is added with a <script> tag.
  **/
 Tea.require = function()
 {
@@ -100,15 +99,15 @@ Tea.overrideMethod = function(super_func, func)
     }
 }
 
-
-Tea.manifest = function(obj, search_space)
+/** Tea.manifest(obj)
+ **/
+Tea.manifest = function(obj)
 {
     if (search_space == null) search_space = Tea.classes;
     if (typeof obj == 'string') {
-        if (search_space[obj])
-            obj = search_space[obj];
-        else
-            throw new Error("Unable to find class: " + obj);
+        cls = Tea.getClass(obj);
+        if (!cls) { throw new Error("Unable to find class: " + obj); }
+        obj = cls;
     }
     if (jQuery.isFunction(obj)) return new obj();
     if (obj.constructor != Object) return obj;
@@ -123,180 +122,316 @@ Tea.manifest = function(obj, search_space)
     return new cls(obj);
 }
 
-/** Tea.Object
-    Base object that allows class/subclass behavior, events, and a regard for "options".
+/** Tea.extend(receiver, donator)
     
-    Tea.Class(name, properties) is a synonym for: Tea.Object.subclass(name, properties)
+    Very much like jQuery.extend(receiver, donator), except that it will 
+    combine functions to be able to use __super__().
  **/
-Tea.Object = function() {
-    this.__init__.apply(this, arguments);
+
+Tea.extend = function(receiver, donator) {
+    $.each(donator, function(k, d) {
+        var r = receiver[k];
+        if (jQuery.isFunction(d) && jQuery.isFunction(r)) {
+            receiver[k] = Tea.overrideMethod(r, d);
+        } else {
+            receiver[k] = d;
+        }
+    });
 }
-Tea.registerClass('Tea.Object', Tea.Object);
 
-Tea.Object.prototype.__init__ = function(options) { 
-    Tea.Object.setOptions(this, options)
-};
-
-Tea.Object.prototype.init = jQuery.noop;
-
-// Options
-/** Tea.Object.setOptions(instance, options)
-    Sets the options of the instance, using the instance's constructor's options as a base.
-    Note: this is a classmethod, not on the instance.
- **/
-Tea.Object.setOptions = function(instance, options) { 
-    options = jQuery.extend({}, instance.constructor.prototype.options, options);
-    jQuery.extend(instance, options)
-    instance.options = options;
-};
-
-// Subclassing
-Tea.Object.__subclass__ = function(base, name, extra)
-{
-    if (extra == undefined && typeof name != 'string')              // Name is optional
-        { extra = name; name = null }
+/** Tea.extender(object)
     
-    var sub = function() { 
-        if (typeof(this.__init__) != 'function')
-            throw "You probably tried to create a Tea object without using the 'new' keyword.  e.g. var object = Tea.Object() should be var object = new Tea.Object()."
+    A Tea.Extender is a basic javascript class that encapsulates an object
+    such that when it is extended via Tea.extend(), it will not replace
+    the value, as normal, but rather "extend" the value.  So if we imagine a 
+    class:
+
+        A = Tea.Class('A', {
+            list: [1, 2, 3]
+        })
         
-        this.__init__.apply(this, arguments);
-        this.init.apply(this, arguments);
-    }  // Constructor.
-    jQuery.extend(sub.prototype, base.prototype, extra);            // Extend the subclass by the base and the extra object.
-    for(k in base.prototype)
+    By extending, B will replace the value of list to [4, 5, 6]:
+    
+        B = A.extend('B', {
+            list: [4, 5, 6]  // B.prototype.list == [4, 5, 6]
+        })
+        
+    However, if we make A thusly:
+        
+        A = Tea.Class('A', {
+            list: Tea.extender([1, 2, 3])
+        })
+        
+    Now, by extending, B will not replace but concatenate, making "list"
+    be [1, 2, 3, 4, 5, 6]:
+    
+        B = A.extend('B', {
+            list: [4, 5, 6]  // B.prototype.list == [1, 2, 3, 4, 5, 6]
+        })
+        
+    This can be done with 
+ **/
+ 
+Tea.extender = function(object) {
+    return new Tea.Extender(object);
+}
+ 
+Tea.Extender = function(object)
+{
+    this.type = this.getType(object);
+    this.object = object;
+}
+
+Tea.Extender.prototype = {
+    join : function(other) {
+        var type;
+        
+        if (other == undefined) {
+            return this.object;
+        } else if (other instanceof Tea.Extender) {
+            type = other.type;
+            other = other.object;
+        } else {
+            type = this.getType(other);
+        }
+        
+        if (type == null) return this.object;
+        if (type == this.type && this.joiners[type])
+            return this.joiners[type](this.object, other);
+        return other;
+    },
+    getType : function(object)
     {
-        if (jQuery.isFunction(base.prototype[k]) && jQuery.isFunction(sub.prototype[k]))
-        {
-            sub.prototype[k] = Tea.overrideMethod(base.prototype[k], sub.prototype[k]);
+        if (jQuery.isFunction(object))
+            return Function;
+        if (object instanceof Array)
+            return Array;
+        if (object instanceof Object)
+            return Object;
+        return null;
+    },
+    joiners: {
+        Function : function(a, b) {
+            return Tea.overrideMethod(a, b);
+        },
+        Array : function(a, b) {
+            a.push.apply(a, b);
+            return a;
+        },
+        Object : function(a, b) {
+            return Tea.extend(a, b);
         }
     }
-    
-    sub.supertype = base.prototype;                                 // Set the supertype
-    sub.prototype.options =
-        jQuery.extend({}, base.prototype.options, extra.options);   // Extend the prototype options, specifically
-    
-    /** Tea.Object.subclass(name, properties)
-        Creates a subclass of the class, copying over prototype properties and options.
-     **/
-    sub.subclass = function(name, inner_extra)
-    {
-        return sub.__subclass__(sub, name, inner_extra);
-    }
-    
-    /** Tea.Object.extend(interface)
-        Copies over the properties and options of the interface to this class.
-     **/
-    sub.extend = function(interface)
-    {
-        if (interface.prototype)
-            interface = interface.prototype;
-            
-        var options = sub.prototype.options;
-        jQuery.extend(sub.prototype, interface);
-        if (interface.options)
-            sub.prototype.options = jQuery.extend(options, interface.options);
-        return sub;
-    }
-    
-    sub.extendClass = function(interface)
-    {
-        jQuery.extend(sub, interface);
-        return sub;
-    }
-    
-    if (name)                                                       // If we have a name, register with that name
-    {
-        Tea.registerClass(name, sub);
-        sub.id = name || 'unnamed';              //Used to call this .name, but Safari didn't like it... For some reason.
-    }
-    
-    sub.__subclass__ = base.__subclass__;
-    
-    return sub;
 }
-Tea.Object.subclass = function(name, extra) { return Tea.Object.__subclass__(Tea.Object, name, extra) }
 
-/** Tea.Object.prototype 
-    All object instances have these functions:
- **/
-
-/** Tea.Object.prototype.setOptions(instance, options)
-    Sets the options of the instance, using the instance's constructor's options as a base.
- **/
-Tea.Object.prototype.toString = function()
-{
-    return "<" + this.constructor.id + ">";
-},
-
-/** Tea.Object.prototype.bind(event, handler, [args])
-    Binds an event for this instance to the given function which will be called with the given args.
+//(function() {
+    var _prototype = false;
+    var _creating = false;
     
-    event:
-        An event name to bind.
-    
-    handler:
-        The function to call when the event is triggered.
-    
-    args (optional):
-        A list of arguments to pass into when calling the handler.
- **/
-Tea.Object.prototype.bind = function(event, handler, args)
-{
-    if (!this.__events) this.__events = {};
-    if (!this.__events[event]) this.__events[event] = [];
-    this.__events[event].push([handler, args]);
-};
-
-/** Tea.Object.prototype.unbind(event, [handler])
-    Unbinds an events from this instance.  If handler is given, only events pointing to that
-    handler are unbound.  Otherwise all handlers for that event are unbound.
-    
-    event:
-        An event name to unbind.
-    
-    handler:
-        Only events pointing the given handler are unbound.
- **/
-Tea.Object.prototype.unbind = function(event, handler) { 
-    if (!this.__events) return;
-    var handlers = this.__events[event];
-    if (!handlers) return;
-    if (handler)
-    {
-        jQuery.each(handlers, function(i)
-        {
-            if (this[0] == handler)
-            {
-                handlers.splice(i, 1);
-            }
-        });
-    }
-    else
-    {
-        delete this.__events[event];
-    }
-};
-
-/** Tea.Object.prototype.trigger(name)
-    
-    event:
-        The event name to trigger.
+    /** Tea.createInstance(cls, args)
         
-    args:
-        Arguments to pass onto the function.  These go after
-        any arguments set in the bind().
- **/
-Tea.Object.prototype.trigger = function(event, args) { 
-    if (!this.__events) return;
-    var handlers = this.__events[event];
-    if (!handlers) return;
-    if (!args) args = [];
-    for(var i = 0; i < handlers.length; i++)
+        Create a new instance with the class and args.  Normally, you would
+        use cls(arg1, arg2, ..., argN)
+     **/
+    
+    Tea.createInstance = function(cls, args)
     {
-        handlers[i][0].apply(this, (handlers[i][1] || []).concat(args));
+        _creating = true;
+        var instance = new cls();
+        _creating = false;
+        
+        instance.constructor = cls;
+        
+        if (_prototype) return instance;
+        instance.__init__.apply(instance, args);
+        instance.init.apply(instance, args);
+        return instance;
     }
-};  
+    
+    /** Tea.extendClass(base, [name], properties)
+    
+        Extend the class "base" given the optional "name" and given the new
+        properties to extend onto the prototype.  Normally you would use
+        base.extend(name, properties)
+     **/
+
+    Tea.extendClass = function(base, name, properties)
+    {
+        if (properties == undefined && typeof name != 'string') {  // Name is optional
+            properties = name; 
+            name = null;
+        }
+        
+        _prototype = true;
+        var prototype = Tea.createInstance(base);
+        _prototype = false;
+    
+        console.log(name, base, prototype, properties);
+        if (name == 'Two') return;
+    
+        Tea.extend(prototype, properties);
+        
+        var cls = function() {
+            if (_creating) return this;
+            return Tea.createInstance(cls, arguments);
+        }
+        
+        if (name)
+            cls.toString = function() { return 'Tea.Class("' + name + '", ...)' };
+        else
+            cls.toString = function() { return "Tea.Class(...)" };
+        cls.toSource = cls.toString;
+        
+        cls.prototype = null;
+        
+        cls.extend = function(name, properties) {
+            return Tea.extendClass(cls, name, properties);
+        }
+        
+        cls.prototype = prototype;
+        cls.__name__ = name;
+        cls.__super__ = base;
+        
+        if (name)
+            Tea.registerClass(name, cls);
+        
+        return cls;
+    }
+
+    /** Tea.Object
+
+        Base object that allows class/subclass behavior, events, and a regard for 
+        "options".
+     **/
+    Tea.Object = function() {
+        if (_creating) return this;
+        return Tea.createInstance(cls, arguments);
+    }
+//})();
+
+/** Tea.Class([name], properties)
+    
+    Extend Tea.Object by a new class.  This is synonymous with 
+    Tea.Object.extend(name, properties) or 
+    Tea.extendClass(Tea.Object, name, properties)
+ **/
+Tea.Class = Tea.Object.extend = function(name, properties) {
+    return Tea.extendClass(Tea.Object, name, properties);
+}
+
+Tea.Object.toString = function() { return 'Tea.Class("object")' };
+Tea.Object.toSource = Tea.Object.toString;
+Tea.Object.__name__ = 'object';
+
+Tea.Object.prototype = {
+    options : Tea.extender({}),
+    
+    /** Tea.Object.__init__(options)
+        
+        Initializes the instance, setting the options.
+    **/
+    __init__ : function(options)
+    {
+        this.options = jQuery.extend({}, this.constructor.prototype.options);
+        if (options)
+            Tea.extend(this.options, options);
+        jQuery.extend(this, this.options);
+    },
+    
+    /** Tea.Object.init(options)
+        
+        This is not used by the internals of Tea, so that one can use it for
+        final, user generated classes.  It is called after __init__.
+    **/
+    init : jQuery.noop,
+    
+    /** Tea.Object.toString()
+        
+        Returns a string representation of the object.
+     **/
+    toString : function()
+    {
+        return "<" + (this.constructor.name || "Tea.Object") + ">";
+    },
+    
+    /** Tea.Object.bind(event, handler, [args])
+        Binds an event for this instance to the given function which will be 
+        called with the given args.
+    
+        event:
+            An event name to bind.
+    
+        handler:
+            The function to call when the event is triggered.
+    
+        args (optional):
+            A list of arguments to pass into when calling the handler.
+     **/
+    bind : function(event, handler, args)
+    {
+        if (!this.__events) this.__events = {};
+        if (!this.__events[event]) this.__events[event] = [];
+        this.__events[event].push([handler, args]);
+    },
+    
+    /** Tea.Object.prototype.unbind(event, [handler])
+        Unbinds an events from this instance.  If a handler is given, only 
+        events pointing to that handler are unbound.  Otherwise all handlers 
+        for that event are unbound.
+    
+        event:
+            An event name to unbind.
+    
+        handler:
+            Only events pointing the given handler are unbound.
+     **/
+    unbind : function(event, handler) { 
+        if (!this.__events) return;
+        var handlers = this.__events[event];
+        if (!handlers) return;
+        if (handler) {
+            jQuery.each(handlers, function(i, v) {
+                if (v == handler) {
+                    handlers.splice(i, 1);
+                }
+            });
+        } else {
+            delete this.__events[event];
+        }
+    },
+    
+    hook : function(other, event, handler)
+    {
+        
+    },
+    
+    unhook : function()
+    {
+        
+    },
+    
+    /** Tea.Object.prototype.trigger(name)
+    
+        event:
+            The event name to trigger.
+        
+        args:
+            Arguments to pass onto the function.  These go after
+            any arguments set in the bind().
+     **/
+    trigger : function(event, args) { 
+        if (!this.__events) return;
+        var handlers = this.__events[event];
+        if (!handlers) return;
+        if (!args) args = [];
+        for(var i = 0; i < handlers.length; i++)
+        {
+            handlers[i][0].apply(this, (handlers[i][1] || []).concat(args));
+        }
+    }
+};
+
+Tea.registerClass('Tea.Object', Tea.Object);
 
 /** Tea.Class(name, properties) !important
     Returns a new Class function with a defined prototype and options.
@@ -324,7 +459,7 @@ Tea.Object.prototype.trigger = function(event, args) {
     
     See tests/test_core.js for more examples on usage.
  **/
-Tea.Class = function() { return Tea.Object.subclass.apply(this, arguments); }
+Tea.Class = function() { return Tea.Object.extend.apply(this, arguments); }
 
 
 /** Tea.Application
@@ -352,6 +487,7 @@ Tea.Application = Tea.Class('Tea.Application',
     
     ready : function(properties) {}
 })
+
 
 // JSON ///////
 

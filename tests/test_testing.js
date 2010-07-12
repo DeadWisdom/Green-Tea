@@ -1,4 +1,4 @@
-new Tea.Testing.Suite({
+/*new Tea.Testing.Suite({
     name: 'Tea.Testing',
     
     responses: {
@@ -37,4 +37,4 @@ new Tea.Testing.Suite({
     {
         Tea.Testing.teardownAjax();
     }
-})
+})*/
