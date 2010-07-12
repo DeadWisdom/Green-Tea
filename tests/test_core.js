@@ -43,13 +43,9 @@ Tea.Testing.Suite({
         One = Tea.Class('One', {
             options: {a: 1, b: 2}
         });
-        
-        console.log("!!! extending...");
         Two = One.extend('Two', {
             options: {b: 'b'}
         });
-        console.log("!!! done.");
-        return;
         
         var uber = One();
         var sub = Two();
@@ -57,7 +53,6 @@ Tea.Testing.Suite({
         assertEqual(uber.a, 1);
         assertEqual(uber.b, 2);
         
-        console.log(Two.prototype.options);
         assertEqual(sub.a, 1);
         assertEqual(sub.b, 'b');
         
@@ -100,30 +95,6 @@ Tea.Testing.Suite({
         object.unbind('signal', add_two);
         object.trigger('signal');
         assertEqual(state, 9);
-    },
-    
-    test_extend : function()
-    {
-        One = Tea.Class({
-            options: {one: 1},
-            one: 1,
-            two: 2
-        });
-        
-        One.extend({
-            options: {one: 'one'}
-        });
-        
-        Two = Tea.Class({
-            one: 'one'
-        })
-        
-        One.extend(Two);
-        
-        var o = One();
-        assertEqual(o.one, 'one');
-        assertEqual(o.one, 'one');
-        assertEqual(o.two, 2);
     },
     
     test_json : function()

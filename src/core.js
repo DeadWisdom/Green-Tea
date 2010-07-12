@@ -125,7 +125,8 @@ Tea.manifest = function(obj)
 /** Tea.extend(receiver, donator)
     
     Very much like jQuery.extend(receiver, donator), except that it will 
-    combine functions to be able to use __super__().
+    combine functions to be able to use __super__(), also it will merge
+    Tea.Options objects.
  **/
 
 Tea.extend = function(receiver, donator) {
@@ -133,95 +134,16 @@ Tea.extend = function(receiver, donator) {
         var r = receiver[k];
         if (jQuery.isFunction(d) && jQuery.isFunction(r)) {
             receiver[k] = Tea.overrideMethod(r, d);
+        } else if (r instanceof Tea.Options) {
+            receiver[k] = jQuery.extend(new Tea.Options(r), d);
         } else {
             receiver[k] = d;
         }
     });
 }
 
-/** Tea.extender(object)
-    
-    A Tea.Extender is a basic javascript class that encapsulates an object
-    such that when it is extended via Tea.extend(), it will not replace
-    the value, as normal, but rather "extend" the value.  So if we imagine a 
-    class:
-
-        A = Tea.Class('A', {
-            list: [1, 2, 3]
-        })
-        
-    By extending, B will replace the value of list to [4, 5, 6]:
-    
-        B = A.extend('B', {
-            list: [4, 5, 6]  // B.prototype.list == [4, 5, 6]
-        })
-        
-    However, if we make A thusly:
-        
-        A = Tea.Class('A', {
-            list: Tea.extender([1, 2, 3])
-        })
-        
-    Now, by extending, B will not replace but concatenate, making "list"
-    be [1, 2, 3, 4, 5, 6]:
-    
-        B = A.extend('B', {
-            list: [4, 5, 6]  // B.prototype.list == [1, 2, 3, 4, 5, 6]
-        })
-        
-    This can be done with 
- **/
- 
-Tea.extender = function(object) {
-    return new Tea.Extender(object);
-}
- 
-Tea.Extender = function(object)
-{
-    this.type = this.getType(object);
-    this.object = object;
-}
-
-Tea.Extender.prototype = {
-    join : function(other) {
-        var type;
-        
-        if (other == undefined) {
-            return this.object;
-        } else if (other instanceof Tea.Extender) {
-            type = other.type;
-            other = other.object;
-        } else {
-            type = this.getType(other);
-        }
-        
-        if (type == null) return this.object;
-        if (type == this.type && this.joiners[type])
-            return this.joiners[type](this.object, other);
-        return other;
-    },
-    getType : function(object)
-    {
-        if (jQuery.isFunction(object))
-            return Function;
-        if (object instanceof Array)
-            return Array;
-        if (object instanceof Object)
-            return Object;
-        return null;
-    },
-    joiners: {
-        Function : function(a, b) {
-            return Tea.overrideMethod(a, b);
-        },
-        Array : function(a, b) {
-            a.push.apply(a, b);
-            return a;
-        },
-        Object : function(a, b) {
-            return Tea.extend(a, b);
-        }
-    }
+Tea.Options = function(options) {
+    jQuery.extend(this, options);
 }
 
 //(function() {
@@ -265,10 +187,7 @@ Tea.Extender.prototype = {
         _prototype = true;
         var prototype = Tea.createInstance(base);
         _prototype = false;
-    
-        console.log(name, base, prototype, properties);
-        if (name == 'Two') return;
-    
+        
         Tea.extend(prototype, properties);
         
         var cls = function() {
@@ -305,7 +224,7 @@ Tea.Extender.prototype = {
      **/
     Tea.Object = function() {
         if (_creating) return this;
-        return Tea.createInstance(cls, arguments);
+        return Tea.createInstance(Tea.Object, arguments);
     }
 //})();
 
@@ -324,7 +243,7 @@ Tea.Object.toSource = Tea.Object.toString;
 Tea.Object.__name__ = 'object';
 
 Tea.Object.prototype = {
-    options : Tea.extender({}),
+    options : new Tea.Options(),
     
     /** Tea.Object.__init__(options)
         
@@ -390,8 +309,8 @@ Tea.Object.prototype = {
         var handlers = this.__events[event];
         if (!handlers) return;
         if (handler) {
-            jQuery.each(handlers, function(i, v) {
-                if (v == handler) {
+            jQuery.each(handlers, function(i, pair) {
+                if (pair[0] == handler) {
                     handlers.splice(i, 1);
                 }
             });
