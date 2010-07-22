@@ -1,40 +1,41 @@
-Tea.require( '../src/resource.js' )
+Tea.require('../src/resource.js')
 
 new Tea.Testing.Suite({
     name: 'Tea.Resource',
     
-    responses: {
-        "/*.json" : function(params, method)
-        {
-            return [
-                {'name': 'hello'},
-                {'name': 'apple'}
-            ];
-        }
-    },
-    
-    setup : function()
+    test_basic : function()
     {
-        Tea.Testing.setupAjax(this.responses);
-    },
+        var a = Tea.Resource({
+            _uri: 1,
+            name: 'One'
+        });
+        
+        var b = Tea.Resource({
+            _uri: 1,
+        });
+        
+        assert(a === a);
+        assert(a === b);
+        
+        assertEqual(a.name, 'One');
+        assertEqual(b.name, 'One');
 
-    teardown : function()
-    {
-        Tea.Testing.teardownAjax();
-    },
-    
-    test_load : function()
-    {   
-        var data = null;
-        var resource = new Tea.Resource({url: '', key: 'name'});
+        a.name = 'The One';
+        assertEqual(a.name, 'The One');
+        assertEqual(b.name, 'The One');
         
-        resource.bind('update', function(objects) { data = objects[0] });
-        resource.query();
+        var c = Tea.Resource({
+            _uri: 1,
+            name: 'Neo'
+        });
         
-        assertEqual(data.name, "hello");
+        assert(a === c);
+        assert(b === c);
         
-        assertEqual(resource.getList('name')[0].name, 'apple');
+        assertEqual(a.name, 'Neo');
+        assertEqual(b.name, 'Neo');
+        assertEqual(c.name, 'Neo');
         
-        resource.query();
+        assert(a instanceof Tea.Object);
     }
 })

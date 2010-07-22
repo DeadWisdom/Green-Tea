@@ -1,7 +1,7 @@
 /** Tea.Template
 
     Naive template implementation.
-    NOTE: There is no escaping done here.
+    NOTE: There is no escaping done here, only apply on trusted data.
     
     @requires Tea
     
@@ -35,7 +35,7 @@ Tea.Template = Tea.Class({
     __init__ : function(src, options)
     {
         this.src = src;
-        Tea.Template.supertype.__init__.call(this, options);
+        this.__super__(options);
     },
     
     /** Tea.Template.apply (context)

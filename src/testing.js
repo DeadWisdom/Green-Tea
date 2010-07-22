@@ -44,7 +44,7 @@ Tea.Testing.run = function(suite, test)
     if (count == passed)
         console.log("Passed.");
     else
-        console.log("Failed: %s of %s passed.", passed, count);
+        console.log("Failed. %s of %s passed.", passed, count);
     
     jQuery.ajaxSetup({async: true});
     

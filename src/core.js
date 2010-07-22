@@ -150,13 +150,7 @@ Tea.Options = function(options) {
     var _prototype = false;
     var _creating = false;
     
-    /** Tea.createInstance(cls, args)
-        
-        Create a new instance with the class and args.  Normally, you would
-        use cls(arg1, arg2, ..., argN)
-     **/
-    
-    Tea.createInstance = function(cls, args)
+    var createInstance = function(cls, args)
     {
         _creating = true;
         var instance = new cls();
@@ -170,14 +164,7 @@ Tea.Options = function(options) {
         return instance;
     }
     
-    /** Tea.extendClass(base, [name], properties)
-    
-        Extend the class "base" given the optional "name" and given the new
-        properties to extend onto the prototype.  Normally you would use
-        base.extend(name, properties)
-     **/
-
-    Tea.extendClass = function(base, name, properties)
+    var extendClass = function(base, name, properties)
     {
         if (properties == undefined && typeof name != 'string') {  // Name is optional
             properties = name; 
@@ -185,14 +172,14 @@ Tea.Options = function(options) {
         }
         
         _prototype = true;
-        var prototype = Tea.createInstance(base);
+        var prototype = createInstance(base);
         _prototype = false;
         
         Tea.extend(prototype, properties);
         
         var cls = function() {
             if (_creating) return this;
-            return Tea.createInstance(cls, arguments);
+            return createInstance(cls, arguments);
         }
         
         if (name)
@@ -204,7 +191,7 @@ Tea.Options = function(options) {
         cls.prototype = null;
         
         cls.extend = function(name, properties) {
-            return Tea.extendClass(cls, name, properties);
+            return extendClass(cls, name, properties);
         }
         
         cls.prototype = prototype;
@@ -224,19 +211,13 @@ Tea.Options = function(options) {
      **/
     Tea.Object = function() {
         if (_creating) return this;
-        return Tea.createInstance(Tea.Object, arguments);
+        return createInstance(Tea.Object, arguments);
+    }
+    
+    Tea.Object.extend = function(name, properties) {
+        return extendClass(Tea.Object, name, properties);
     }
 //})();
-
-/** Tea.Class([name], properties)
-    
-    Extend Tea.Object by a new class.  This is synonymous with 
-    Tea.Object.extend(name, properties) or 
-    Tea.extendClass(Tea.Object, name, properties)
- **/
-Tea.Class = Tea.Object.extend = function(name, properties) {
-    return Tea.extendClass(Tea.Object, name, properties);
-}
 
 Tea.Object.toString = function() { return 'Tea.Class("object")' };
 Tea.Object.toSource = Tea.Object.toString;
@@ -350,7 +331,14 @@ Tea.Object.prototype = {
     }
 };
 
-Tea.registerClass('Tea.Object', Tea.Object);
+/** Tea.Class([name], properties)
+    
+    Extend Tea.Object by a new class.  This is synonymous with 
+    Tea.Object.extend(name, properties).
+ **/
+Tea.Class = Tea.Object.extend;
+
+Tea.registerClass('t-object', Tea.Object);
 
 /** Tea.Class(name, properties) !important
     Returns a new Class function with a defined prototype and options.
@@ -388,7 +376,7 @@ Tea.Class = function() { return Tea.Object.extend.apply(this, arguments); }
     
     Also note that any Tea.Application subclasses are immediately turned into singletons.
  **/
-Tea.Application = Tea.Class('Tea.Application',
+Tea.Application = Tea.Class('t-app',
 {
     __init__ : function(properties) {
         if (properties)

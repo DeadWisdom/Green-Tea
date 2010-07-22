@@ -23,6 +23,36 @@ Tea.Testing.Suite({
         assertEqual(greeter.greet(), "Hello javascripter!");
     },
     
+    test_instanceof : function()
+    {
+        var A = Tea.Class('A', {});
+        var B = Tea.Class('B', {});
+        var C = B.extend('C', {});
+        
+        var a = new A();
+        var b = new B();
+        var c = new C();
+        var d = new Object();
+        
+        // Basics
+        assert(a instanceof A);
+        assert(b instanceof B);
+        assert(c instanceof C);
+        assert(d instanceof Object);
+        
+        // Inheritance
+        assert(c instanceof B);
+        assert(c instanceof Object);
+        assert(c instanceof Tea.Object);
+        assert(a instanceof Object);
+        assert(a instanceof Tea.Object);
+        
+        // Anti
+        assert(! (c instanceof A));
+        assert(! (d instanceof A));
+        assert(! (b instanceof C));
+    },
+    
     test_subclassing : function()
     {
         var One = Tea.Class({});

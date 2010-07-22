@@ -2,9 +2,10 @@ Tea.require(
     '../src/testing.js',
     
     '../tests/test_testing.js',
-    '../tests/test_core.js'
-    //'../tests/test_template.js',
-    //'../tests/test_resource.js',
+    '../tests/test_core.js',
+    '../tests/test_template.js',
+    '../tests/test_resource.js'
+    
     //'../tests/test_element.js',
     //'../tests/test_container.js',
     ////'../tests/test_list.js',       REBUILDING
