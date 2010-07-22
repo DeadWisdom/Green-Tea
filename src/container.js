@@ -105,14 +105,13 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     },
     remove : function(item)
     {
-        if (!item) return Tea.Container.supertype.remove.call(this);   // Act as an element, remove this.
+        if (!item) return Tea.Container.supertype.remove.call(this);   // Act as an element, remove myself.
         if (item.parent !== this) return;
         
         this.items.splice(item._index, 1);
-        if (item.isRendered())
-            item.skin.remove();
-            
+        
         item.parent = null;
+        item.remove();
         
         for(var i=0; i < this.items.length; i++)
             this.items[i]._index = i;

@@ -82,11 +82,12 @@ Tea.Element = Tea.Class('Tea.Element', {
     remove : function()  // Remove from element's parent and source's parent
     {
         if (this.parent)
-            this.parent.remove(this);
-        else
+            return this.parent.remove(this);
+        
+        if (this.isRendered())
             this.source.remove();
-            
-        this.trigger('remove', this, this.parent);
+        
+        this.trigger('remove');
     },
     addEventListener : function(type, handle)    // For events, binds any dom events to the source.
     {

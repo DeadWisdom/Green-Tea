@@ -60,21 +60,15 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
         {
             if (item.parent !== this) throw new Error("Popping an item that isn't in the Tea.StackContainer.");
             
-            for(var i = item._index; i < this.items.length; i++)
-            {
-                if (this.items[i].source)
-                    this.items[i].skin.remove();
-                    
-                item.parent = null;
+            var now = this.items[this.items.length-1];
+            while(now != item) {
+                Tea.StackContainer.supertype.remove.call(this, now);
+                now = this.items[this.items.length-1];
             }
-            
-            this.items.splice(item._index, this.items.length - item._index);
         }
-        else
-        {
-            var item = this.items[this.items.length-1];
-            Tea.StackContainer.supertype.remove.call(this, item);
-        }
+        
+        var item = this.items[this.items.length-1];
+        Tea.StackContainer.supertype.remove.call(this, item);
         
         this.refresh();
         return item;
@@ -91,7 +85,10 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
     },
     remove : function( item )
     {
-        this.pop(item);
+        if ( item )
+            this.pop(item);
+        else
+            return Tea.StackContainer.supertype.remove.call(this);
     },
     popAfter : function( item )
     {

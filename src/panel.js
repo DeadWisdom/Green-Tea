@@ -104,6 +104,7 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
             this.top = new Tea.Container({cls: 't-bar t-top', items: top});
             this.top.panel = this.element;
             this.title.after(this.top.render());
+            this.source.addClass('t-has-top');
         }
         if (bottom)
         {
@@ -114,6 +115,7 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
             this.bottom = new Tea.Container({cls: 't-bar t-bottom', items: bottom});
             this.bottom.panel = this.element;
             this.content.after(this.bottom.render());
+            this.source.addClass('t-has-bottom');
         }
     },
     append : function(src)

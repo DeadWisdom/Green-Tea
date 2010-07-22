@@ -147,7 +147,6 @@ Tea.Form.Skin = Tea.Container.Skin.subclass('Tea.Form.Skin', {
     }
 });
 
-
 Tea.Field = Tea.Element.subclass('text', {
     options: {
         name: null,
@@ -233,7 +232,9 @@ Tea.Field.Skin = Tea.Element.Skin.subclass('Tea.Field.Skin', {
         
         Tea.Field.Skin.supertype.render.call(this);
         
-        this.source.append(this.label);
+        if (this.element.label)
+            this.source.append(this.label);
+        
         this.source.append(this.field);
         
         if (element.value)
