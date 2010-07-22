@@ -5,7 +5,8 @@
 
 Tea.Session = Tea.Class('t-session', {
     options: {
-        key: '_uri'
+        key: '_uri',
+        type: '_type'
     },
     __init__ : function(opts) {
         this.cache = {};
@@ -31,9 +32,18 @@ Tea.Session = Tea.Class('t-session', {
         return obj;
     },
     build : function(obj) {
-        return Tea.Object(obj)
+        if (obj instanceof Tea.Object) return obj;
+        
+        var typeName = obj[this.type];
+        
+        if (typeof typeName != 'string')
+            return Tea.Object(obj);
+        
+        return Tea.getClass(typeName)(obj);
     }
 });
 
 Tea._session = Tea.Session();
-Tea.Resource = function() { return Tea._session.resource.apply(Tea._session, arguments) };
+Tea.Resource = function() { 
+    return Tea._session.resource.apply(Tea._session, arguments)
+};

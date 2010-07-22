@@ -37,5 +37,24 @@ new Tea.Testing.Suite({
         assertEqual(c.name, 'Neo');
         
         assert(a instanceof Tea.Object);
+    },
+    test_advanced : function()
+    {
+        One = Tea.Class('One', {
+            name: 'One'
+        });
+        
+        var a = Tea.Resource({
+            _uri: 2
+        });
+        
+        assertEqual(a.name, undefined);
+        
+        var b = Tea.Resource({
+            _uri: 3,
+            _type: 'One'
+        });
+        
+        assertEqual(b.name, 'One');
     }
 })
