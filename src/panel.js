@@ -5,12 +5,13 @@
     @requires Tea.Container
  **/
 
-Tea.Panel = Tea.Container.subclass('Tea.Panel', {
+Tea.Panel = Tea.Container.extend('t-panel', {
     options: {
         title: '',
         closable: false,
         top: null,
-        bottom: null
+        bottom: null,
+        skin: 't-panel-skin'
     },
     setTitle : function(title)
     {
@@ -41,11 +42,11 @@ Tea.Panel = Tea.Container.subclass('Tea.Panel', {
 
 Tea.Panel.focus = null;
 
-Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
+Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
     options: {
         cls: 't-panel'
     },
-    render : function() {
+    render : function(source) {
         var element = this.element;
         
         this.content = $("<div class='t-content'/>");
@@ -67,18 +68,11 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
             Tea.Panel.focus = null;
         });
         
-        Tea.Panel.Skin.supertype.render.call(this);
+        var source = this.__super__(source);
         
-        /*this.source.bind('mousedown', function(e)
-        {
-            if (!anchor.has_focus)
-                anchor.focus();
-            e.preventDefault(); // Kills the bluring of our anchor.
-        })*/
-        
-        this.source.append(this.anchor);
-        this.source.append(this.title);
-        this.source.append(this.content);
+        source.append(this.anchor);
+        source.append(this.title);
+        source.append(this.content);
         
         this.setBars(element.top, element.bottom);
         
@@ -87,7 +81,7 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
                             .appendTo(this.title)
                             .click(function() { element.close() });
         
-        return this.source;
+        return source;
         
     },
     setTitle : function(title)
@@ -101,7 +95,7 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
                 for(var i = 0; i < top.length; i++) {
                     top[i].context = this.element;
                 }
-            this.top = new Tea.Container({cls: 't-bar t-top', items: top});
+            this.top = Tea.Container({cls: 't-bar t-top', items: top});
             this.top.panel = this.element;
             this.title.after(this.top.render());
         }
@@ -111,7 +105,7 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
                 for(var i = 0; i < bottom.length; i++) {
                     bottom[i].context = this.element;
                 }
-            this.bottom = new Tea.Container({cls: 't-bar t-bottom', items: bottom});
+            this.bottom = Tea.Container({cls: 't-bar t-bottom', items: bottom});
             this.bottom.panel = this.element;
             this.content.after(this.bottom.render());
         }
@@ -147,10 +141,3 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
         return this.anchor.hasFocus;
     }
 });
-
-Tea.Panel.WindowSkin = Tea.Panel.Skin.subclass('Tea.Panel.WindowSkin',
-{
-    options: {
-        cls: 't-window t-panel'
-    }
-})

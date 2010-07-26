@@ -7,10 +7,11 @@
     More comments.
  **/
 
-Tea.Container = Tea.Element.subclass('Tea.Container', {
+Tea.Container = Tea.Element.extend('t-container', {
     options: {
         items: null,
-        fields: null
+        fields: null,
+        skin: 't-container-skin'
     },
     __init__ : function(options)
     {
@@ -18,8 +19,11 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         var items = jQuery.makeArray(this.items);
         this.items = [];
         this.fields = {};
+        
         var container = this;
-        jQuery.each(items, function(){ container.append(this); })
+        jQuery.each(items, function(index, item) {
+            container.append(item); 
+        })
     },
     /** Tea.Container.own(item)
         
@@ -27,20 +31,11 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     **/
     own : function(item)
     {
-        if (item.constructor === Object)
-        {
-            var cls = Tea.classes[item.type];
-            if (!cls && this.classes)
-                cls = this.classes[item.type];
-            if (!cls)
-                throw new Error("Attempt to add to this container, an Object instance with no valid type: " + item.type);
-            
-            item = new cls(item);
-        }
+        item = Tea.manifest(item);
         
         if (item.parent)
             item.remove();
-            
+        
         item.parent = this;
         
         if (item.name)
@@ -105,7 +100,7 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     },
     remove : function(item)
     {
-        if (!item) return Tea.Container.supertype.remove.call(this);   // Act as an element, remove this.
+        if (!item) return this.__super__(); // Act as an element, remove this.
         if (item.parent !== this) return;
         
         this.items.splice(item._index, 1);
@@ -148,10 +143,10 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     }
 })
 
-Tea.Container.Skin = Tea.Element.Skin.subclass('Tea.Container.Skin', {
+Tea.Container.Skin = Tea.Skin.extend('t-container-skin', {
     render : function(source)
     {
-        var source = Tea.Container.Skin.supertype.render.call(this, source);
+        var source = this.__super__(source);
         
         var items = this.element.items;
         for(var i=0; i < items.length; i++)
@@ -159,21 +154,16 @@ Tea.Container.Skin = Tea.Element.Skin.subclass('Tea.Container.Skin', {
         
         return source;
     },
-    onAddSource : function(src)
-    {},
     append : function(src)
     {
         this.source.append(src);
-        this.onAddSource(src);
     },
     prepend : function(src)
     {
         this.source.prepend(src);
-        this.onAddSource(src);
     },
     after : function(pivot, src)
     {
         pivot.after(src);
-        this.onAddSource(src);
     }
 })

@@ -7,26 +7,27 @@
  
 Tea.Widget = {}
 
-Tea.Button = Tea.Element.subclass('Tea.Button', {
+Tea.Button = Tea.Element.extend('t-button', {
     options: {
         text: '',
         icon: '',
         disabled: false,
         click: null,
-        context: null
+        context: null,
+        skin: 't-button-skin'
     },
-    __init__ : function()
+    __init__ : function(options)
     {
-        Tea.Button.supertype.__init__.apply(this, arguments);
+        this.__super__(options);
         
         if (this.text)
             this.setText(this.text);
         if (this.icon)
             this.setIcon(this.icon);
     },
-    render : function()
+    render : function(source)
     {
-        Tea.Button.supertype.render.apply(this, arguments);
+        source = this.__super__(source);
         
         this.setDisabled(this.disabled);
         
@@ -35,7 +36,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
         if (this.icon)
             this.skin.setIcon(this.icon);
         
-        return this.source;
+        return source;
     },
     setText : function(text)
     {
@@ -69,7 +70,7 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     {
         this.disabled = bool;
         
-        if (this.source)
+        if (this.isRendered())
             this.skin.setDisabled(this.disabled = bool);
         else
             this.disabled = bool;
@@ -92,44 +93,44 @@ Tea.Button = Tea.Element.subclass('Tea.Button', {
     }
 })
 
-Tea.Button.Skin = Tea.Element.Skin.subclass('Tea.Button.Skin', {
+Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
     options: {
         cls: 't-button'
     },
-    render : function() {
+    render : function(source) {
         var element = this.element;
         
         this.icon = $("<div class='t-icon'/>").addClass(element.icon);
         this.text = $("<div class='t-text'/>").append(element.text || '');
         
-        Tea.Button.Skin.supertype.render.call(this);
+        source = this.__super__(source);
         
-        element.source.append(this.icon);
-        element.source.append(this.text);
+        source.append(this.icon);
+        source.append(this.text);
         
-        element.source.mousedown(function() {
+        source.mousedown(function() {
             if (!element.disabled) 
-                element.source.addClass('t-active')
+                source.addClass('t-active')
         });
         
-        element.source.bind('mouseup mouseout', function() {
-            element.source.removeClass('t-active')
+        source.bind('mouseup mouseout', function() {
+            source.removeClass('t-active')
         });
         
         if (element.click)
-            element.source.click(Tea.method(element.performClick, element));
+            source.click(Tea.method(element.performClick, element));
             
-        element.source.hover(
+        source.hover(
             function() {
                 if (!element.disabled)
-                    element.source.addClass('t-button-hover');
+                    source.addClass('t-button-hover');
             },
             function() {
-                element.source.removeClass('t-button-hover');
+                source.removeClass('t-button-hover');
             }
         )
         
-        return this.source;
+        return source;
     },
     setText : function(text)
     {

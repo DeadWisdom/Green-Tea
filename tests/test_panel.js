@@ -1,12 +1,12 @@
 Tea.require( '../src/panel.js' );
 
-new Tea.Testing.Suite({
+Tea.Testing.Suite({
     name: 'Tea.Panel',
     
     test_basic : function()
     {
-        var panel = new Tea.Panel({
-            items: [new Tea.Element({html: '1'})],
+        var panel = Tea.Panel({
+            items: [Tea.Element({html: '1'})],
             title: 'Panel 1'
         });
         
@@ -19,7 +19,7 @@ new Tea.Testing.Suite({
     
     test_html : function()
     {
-        var panel = new Tea.Panel({
+        var panel = Tea.Panel({
             html: '<b>Hello</b>',
             title: 'Test HTML'
         });
@@ -29,17 +29,5 @@ new Tea.Testing.Suite({
         
         assertEqual(el.childNodes[2].childNodes[0].tagName, 'B');
         assertEqual(el.childNodes[2].childNodes[0].innerHTML, 'Hello');
-    },
-    
-    test_window : function()
-    {
-        var panel = new Tea.Panel({
-            skin: 'Tea.Panel.WindowSkin',
-            html: 'Hello'
-        })
-        
-        var source = panel.render();
-        
-        assertEqual(source[0].className, 't-window t-panel');
     }
 })

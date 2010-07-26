@@ -103,18 +103,17 @@ Tea.overrideMethod = function(super_func, func)
  **/
 Tea.manifest = function(obj)
 {
-    if (search_space == null) search_space = Tea.classes;
     if (typeof obj == 'string') {
         cls = Tea.getClass(obj);
         if (!cls) { throw new Error("Unable to find class: " + obj); }
         obj = cls;
     }
-    if (jQuery.isFunction(obj)) return new obj();
+    if (jQuery.isFunction(obj)) return obj();
     if (obj.constructor != Object) return obj;
     
     var cls = obj.type;
     if (typeof cls == 'string')
-        cls = search_space[cls];
+        cls = Tea.classes[cls];
     if (!cls) 
     {
         throw new Error("Unable to instantiate object: " + cls);
@@ -161,6 +160,8 @@ Tea.Options = function(options) {
         if (_prototype) return instance;
         instance.__init__.apply(instance, args);
         instance.init.apply(instance, args);
+        if (jQuery.isFunction( instance.__postinit__ ))
+            instance.__postinit__();
         return instance;
     }
     
@@ -251,7 +252,7 @@ Tea.Object.prototype = {
      **/
     toString : function()
     {
-        return "<" + (this.constructor.name || "Tea.Object") + ">";
+        return (this.constructor.__name__ || "Tea.Object");
     },
     
     /** Tea.Object.bind(event, handler, [args])

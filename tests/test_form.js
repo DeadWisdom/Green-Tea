@@ -1,71 +1,136 @@
+Tea.require( '../src/input.js' );
 Tea.require( '../src/form.js' );
 
-new Tea.Testing.Suite({
+Tea.Testing.Suite({
     name: 'Tea.Form',
     
-    test_basic : function()
+    _test_simple : function(input)
     {
-        var form = new Tea.Form({
-            items: [
-                {type: 'text', value: 'value', name: 'name'}
-            ]
-        });
+        input.setValue('bar');
+        assertEqual(input.getValue(), 'bar');
         
-        var source = form.render();
+        input.render();
+        assertEqual(input.getValue(), 'bar');
         
-        assertEqual(source[0].tagName, 'FORM');
-        assertEqual(source[0].childNodes[0].childNodes[0].tagName, 'LABEL');
-        assertEqual(source[0].childNodes[0].childNodes[0].innerHTML, 'name');
-        assertEqual(source[0].childNodes[0].childNodes[1].tagName, 'INPUT');
-        assertEqual(source[0].childNodes[0].childNodes[1].type, 'text');
-        
-        assertEqual(source[0].childNodes[0].childNodes[1].value, 'value');
-        
-        form.setValue({name: 2});
-        
-        assertEqual(source[0].childNodes[0].childNodes[1].value, '2');
-        assertEqual(Tea.toJSON(form.getValue()), '{"name":"2"}');
+        input.setValue('foo');
+        assertEqual(input.getValue(), 'foo');
     },
     
-    _test_type : function(type, tagName, index)
+    test_simple : function()
     {
-        var form = new Tea.Form({
-            items: {type: type, name: 'name'}
-        });
+        var one = Tea.TextInput();
+        var two = Tea.TextInput({password: true});
         
-        var source = form.render();
-        assertEqual(source[0].childNodes[0].childNodes[index || 1].tagName, tagName);
+        this._test_simple( one );
+        this._test_simple( two );
         
-        assertEqual(form.fields.name.getValue(), '');
-        form.setValue({name: 'bob'});
-        assertEqual(Tea.toJSON(form.getValue()), '{"name":"bob"}');
+        assertEqual(two.source.attr('type'), 'password');
     },
     
-    test_text : function()
-    {   this._test_type('text', 'INPUT');  },
+    test_empty : function()
+    {
+        var input = Tea.TextInput({
+            emptyText: 'Name',
+            appendTo: '#content'
+        });
+        
+        assertEqual(input.source[0].className, 't-empty');
+        assertEqual(input.source.val(), 'Name');
+        input.focus();
+        assertEqual(input.source[0].className, '');
+        assertEqual(input.source.val(), '');
+        input.blur();
+        assertEqual(input.source[0].className, 't-empty');
+        assertEqual(input.source.val(), 'Name');
+        
+        input.setValue('bar');
+        assertEqual(input.getValue(), 'bar');
+        assertEqual(input.source.val(), 'bar');
+        assertEqual(input.source[0].className, '');
+        
+        input.focus();
+        assertEqual(input.getValue(), 'bar');
+        assertEqual(input.source.val(), 'bar');
+        assertEqual(input.source[0].className, '');
+        
+        input.blur();
+        assertEqual(input.getValue(), 'bar');
+        assertEqual(input.source.val(), 'bar');
+        assertEqual(input.source[0].className, '');
+        
+        input.focus();
+        input.source.val('');
+        input.blur();
+        assertEqual(input.source[0].className, 't-empty');
+        assertEqual(input.source.val(), 'Name');
+    },
     
-    test_password : function()
-    {   this._test_type('password', 'INPUT');  },
-    
-    test_textarea : function()
-    {   this._test_type('textarea', 'TEXTAREA');  },
-    
-    test_static : function()
-    {   this._test_type('static', 'DIV');  },
+    test_field : function()
+    {
+        var field = Tea.TextField({
+            emptyText: 'Name',
+            appendTo: '#content',
+            style: {
+                margin: '10px 0px'
+            }
+        });
+        
+        field.setValue('foo');
+        assertEqual(field.getValue(), field.input.getValue());
+        assertEqual(field.getValue(), 'foo');
+        
+        field.setLabel("Name: ");
+        assertEqual(field.source[0].childNodes[0].tagName, "LABEL");
+        assertEqual(field.source.find('label').html(), "Name: ");
+        
+        field.setError("This is an error.");
+        assertEqual(field.source[0].childNodes[2].className, "t-error");
+        field.setError(null);
+        assertEqual(field.source[0].childNodes.length, 2);
+        field.setError("This is an error.");
+        assertEqual(field.source[0].childNodes.length, 3);
+    },
     
     test_select : function()
-    {   
-        var form = new Tea.Form({
-            items: {type: 'select', name: 'name', choices: [1, 2, 3], value: 1}
+    {
+        var field = Tea.SelectField({
+            label: 'Select:',
+            choices: [
+                'one',
+                'two',
+                ['three', 'Three']
+            ],
+            appendTo: '#content',
+            style: {
+                margin: '10px 0px'
+            }
         });
         
-        var source = form.render();
-        assertEqual(source[0].childNodes[0].childNodes[1].tagName, 'SELECT');
+        field.setValue('two');
+        assertEqual(field.getValue(), 'two');
         
-        assertEqual(form.fields.name.getValue(), 1);
-        form.setValue({name: 2});
-        assertEqual(Tea.toJSON(form.getValue()), '{"name":2}');
-        form.setValue({name: 'Not There'});
-        assertEqual(Tea.toJSON(form.getValue()), '{"name":1}');
+        field.setValue('asdfasdf');
+        assertEqual(field.getValue(), 'two');
+        
+        field.setValue('one');
+        assertEqual(field.getValue(), 'one');
     },
+    
+    test_checkbox : function()
+    {
+        var field = Tea.CheckBoxField({
+            value: true,
+            label: 'Check:',
+            appendTo: '#content',
+            style: {
+                margin: '10px 0px'
+            }
+        });
+        
+        assertEqual(field.getValue(), true);
+        
+        field.setValue(false);
+        
+        assertEqual(field.getValue(), false);
+    }
 });

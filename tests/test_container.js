@@ -1,15 +1,15 @@
 Tea.require( '../src/container.js' )
 
-new Tea.Testing.Suite({
+Tea.Testing.Suite({
     name: 'Tea.Container',
     
     test_basics : function()
     {
-        var a = new Tea.Element({html: 'Item 0'});
-        var b = new Tea.Element({html: 'Item 1'});
-        var c = new Tea.Element({html: 'Item 2'});
+        var a = Tea.Element({html: 'Item 0'});
+        var b = Tea.Element({html: 'Item 1'});
+        var c = Tea.Element({html: 'Item 2'});
         
-        var container = new Tea.Container({
+        var container = Tea.Container({
             items : [a, b, c]
         });
         
@@ -30,9 +30,9 @@ new Tea.Testing.Suite({
     
     test_append : function()
     {
-        var a = new Tea.Element({html: 'Item 0'});
-        var b = new Tea.Element({html: 'Item 1'});
-        var container = new Tea.Container({
+        var a = Tea.Element({html: 'Item 0'});
+        var b = Tea.Element({html: 'Item 1'});
+        var container = Tea.Container({
             items : a
         });
         
@@ -46,10 +46,10 @@ new Tea.Testing.Suite({
     
     test_insert : function()
     {
-        var a = new Tea.Element({html: 'Item 0'});
-        var b = new Tea.Element({html: 'Item 1'});
-        var c = new Tea.Element({html: 'Item 2'});
-        var container = new Tea.Container({});
+        var a = Tea.Element({html: 'Item 0'});
+        var b = Tea.Element({html: 'Item 1'});
+        var c = Tea.Element({html: 'Item 2'});
+        var container = Tea.Container({});
         
         container.append(c);
         container.insert(0, a);
