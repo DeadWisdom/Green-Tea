@@ -96,7 +96,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
         this.pause();
         
         while(this.items.length > item._index + 1)
-            this.remove(this.items[this._index + 1]);
+            this.remove(this.items[item._index + 1]);
             
         this.play();
         this.refresh();
