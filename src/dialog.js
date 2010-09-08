@@ -14,6 +14,7 @@ Tea.Dialog = Tea.Panel.extend('t-dialog', {
         appendTo: null,
         time: null,
         scrim: null,
+        resizeMaster: true,
         skin: 't-dialog-skin'
     },
     __init__ : function(options)
@@ -44,6 +45,25 @@ Tea.Dialog.Skin = Tea.Panel.Skin.extend('t-dialog-skin', {
     options: {
         cls: 't-dialog t-panel'
     },
+    resize : function(speed)
+    {
+        var element = this.element;
+        var source = this.source;
+        
+        var height = source.height();
+        if (height > $(document).height() - 8)
+            source.height($(document).height() - 8);
+        
+        if (element.placement == 'top')
+            source.animate( {top: 20, 
+                             opacity: element.opacity}, 
+                             speed || element.speed, element.easing);
+        else if (element.placement == 'center')
+            source.animate( {top: $(document).height()/2.5 - source.height()/2, 
+                             opacity: element.opacity}, 
+                             speed || element.speed, element.easing );
+                             
+    },
     show : function()
     {
         var element = this.element;
@@ -54,15 +74,9 @@ Tea.Dialog.Skin = Tea.Panel.Skin.extend('t-dialog-skin', {
         source.css('opacity', 0);
         source.css('position', 'fixed');
         source.css('top', -source.height());
-        source.css('left', $(document).width()/2 - source.width()/2);    
-        if (element.placement == 'top')
-            source.animate( {top: 20, 
-                             opacity: element.opacity}, 
-                            element.speed, element.easing);
-        else if (element.placement == 'center')
-            source.animate( {top: $(document).height()/2.5 - source.height()/2, 
-                             opacity: element.opacity}, 
-                            element.speed, element.easing );
+        source.css('left', $(document).width()/2 - source.width()/2);
+        
+        this.resize();
         
         if (element.time)
         {
@@ -95,19 +109,10 @@ Tea.Scrim = Tea.Element.extend('t-scrim', {
         
         var source = this.source;
         
-        source.css({
-            opacity: 0,
-            position: 'static',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-        });
-        
-        source.fadeIn('fast');   
+        source.hide().fadeTo('fast', .8);
     },
     hide : function()
     {
-        this.source.hide();
+        this.remove();
     }
 })

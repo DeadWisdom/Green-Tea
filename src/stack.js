@@ -12,7 +12,8 @@
 Tea.Stack = Tea.Container.extend('t-stack', {
     options: {
         skin: 't-stack-skin',
-        margin: 6
+        margin: 6,
+//        anchor: 0
     },
     __init__ : function(options)
     {
@@ -46,7 +47,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
         pushing the *item*.
     **/
     push : function( item, after )
-    {
+    {   
         if (after)
         {
             this.pause();
@@ -94,8 +95,8 @@ Tea.Stack = Tea.Container.extend('t-stack', {
         
         this.pause();
         
-        for(var i = item._index+1; i < this.items.length; i++)
-            this.remove(this.items[i]);
+        while(this.items.length > item._index + 1)
+            this.remove(this.items[this._index + 1]);
             
         this.play();
         this.refresh();
@@ -109,7 +110,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
     remove : function( item )
     {
         this.__super__( item );
-        if (this.parent)
+        if (item)
             this.refresh();
     },
     pause : function()
@@ -127,8 +128,15 @@ Tea.Stack.Skin = Tea.Container.Skin.extend('t-stack-skin', {
     options: {
         cls: 't-stack',
     },
+    render : function(source)
+    {
+        source = this.__super__(source);
+        $(window).resize(Tea.method(this.refresh, this));
+        return source;
+    },
     refresh : function( new_item )
     {
+//        var anchor = element.anchor;
         var element = this.element;
         var items = element.items;
         var gutter = element.margin;
@@ -150,8 +158,10 @@ Tea.Stack.Skin = Tea.Container.Skin.extend('t-stack-skin', {
         var left = gutter;
         
         element.each(function(index, item) {
-            if (index < start)
+            if (index < start) {
                 item.source.hide().css('left', 0 - item.source.width() - gutter);
+                return;
+            }
             
             if (item == new_item)
                 item.source.css({

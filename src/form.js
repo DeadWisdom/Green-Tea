@@ -21,7 +21,10 @@ Tea.Field = Tea.Element.extend('t-field', {
     {
         this.__super__(options);
         if (this.input)
+        {
             this.input = Tea.manifest(this.input);
+            this.input.setValue(this.value);
+        }
     },
     setLabel : function(html)
     {
@@ -70,6 +73,16 @@ Tea.Field = Tea.Element.extend('t-field', {
         if (this.input)
             return this.input.isValid();
         return true;
+    },
+    focus : function()
+    {
+        if (this.input)
+            this.input.focus();
+    },
+    blur : function()
+    {
+        if (this.input)
+            this.input.blur();
     }
 })
 
@@ -149,6 +162,21 @@ Tea.PasswordField = Tea.TextField.extend('t-password', {
     }
 });
 
+Tea.TextAreaField = Tea.Field.extend('t-textarea', {
+    options: {
+        blank: true,
+        value: null
+    },
+    __init__ : function(options) {
+        this.__super__(options);
+        
+        this.input = Tea.TextAreaInput({
+            blank: this.blank,
+            value: this.value
+        });
+    }
+});
+
 Tea.SelectField = Tea.Field.extend('t-select', {
     options: {
         choices: []
@@ -165,12 +193,8 @@ Tea.SelectField = Tea.Field.extend('t-select', {
 });
 
 Tea.CheckBoxField = Tea.Field.extend('t-check-box', {
-    __init__ : function(options)
-    {
-        this.__super__(options);
-        
-        this.input = Tea.CheckBoxInput({
-            value: this.value
-        });
+    options: {
+        input: 't-check-box-input'
     }
 })
+

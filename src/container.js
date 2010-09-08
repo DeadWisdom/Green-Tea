@@ -11,7 +11,8 @@ Tea.Container = Tea.Element.extend('t-container', {
     options: {
         items: null,
         fields: null,
-        skin: 't-container-skin'
+        skin: 't-container-skin',
+        layout: null
     },
     __init__ : function(options)
     {
@@ -65,8 +66,10 @@ Tea.Container = Tea.Element.extend('t-container', {
         item._index = this.items.length;
         this.items.push(item);
         
-        if (this.isRendered())
+        if (this.isRendered()) {
             this.skin.append(item.render());
+            this.resize();
+        }
         
         return item;
     },
@@ -90,6 +93,8 @@ Tea.Container = Tea.Element.extend('t-container', {
                 this.skin.prepend(item.render())
             else
                 this.skin.after(this.items[item._index - 1].source, item.render());
+            
+            this.resize();
         }
         
         return item;
@@ -100,6 +105,8 @@ Tea.Container = Tea.Element.extend('t-container', {
     },
     remove : function(item)
     {
+        console.log(this, "remove()", item, item._index);
+        
         if (!item) return this.__super__(); // Act as an element, remove this.
         if (item.parent !== this) return;
         
@@ -140,6 +147,14 @@ Tea.Container = Tea.Element.extend('t-container', {
             jQuery.each(this.items, function() { func.apply(context, arguments) });
         else
             jQuery.each(this.items, func);
+    },
+    resize : function()
+    {
+        this.__super__();
+        
+        for(var i=0; i < this.items.length; i++) {
+            this.items[i].resize();
+        }
     }
 })
 
@@ -151,6 +166,9 @@ Tea.Container.Skin = Tea.Skin.extend('t-container-skin', {
         var items = this.element.items;
         for(var i=0; i < items.length; i++)
             this.append(items[i].render());
+        
+        if (this.element.layout)
+            this.element.layout = Tea.manifest(this.element.layout);
         
         return source;
     },
@@ -165,5 +183,56 @@ Tea.Container.Skin = Tea.Skin.extend('t-container-skin', {
     after : function(pivot, src)
     {
         pivot.after(src);
+    },
+    resize : function() {
+        if (this.element.layout) return this.element.layout.resize(this.element);
+    }
+});
+
+Tea.Layout = Tea.Class('t-layout', {
+    resize : function(container) 
+    {},
+    getSize : function(size) {
+        if (size == 'fill') return 0;
+        if (!size) return 0;
+        return size;
+    }
+});
+
+Tea.Layout.VSplit = Tea.Layout.extend('t-vsplit', {
+    resize : function(container) {
+        var heights = 0;
+        var fills = 0;
+        var sz = 0;
+        var getSize = this.getSize;
+        var content = null;
+        
+        container.each(function(i, item) {
+            if (!item.isRendered()) return;
+            if (!content) content = item.source.offsetParent();
+            heights += getSize(item.height);
+            if (item.height == 'fill') fills += 1;
+            sz += 1;
+        });
+        
+        var wiggle = content.height() - heights - 2;
+        var fill = wiggle / fills;
+        var last = 0;
+        
+        container.each(function(i, item) {
+            if (!item.isRendered()) return;
+            var source = item.source;
+            var height = (item.height == 'fill' ? fill : item.height);
+            
+            source.css({
+                position: 'absolute',
+                top: last,
+                height: height,
+                left: 0,
+                right: 0
+            })
+            
+            last = last + height + 1;
+        })
     }
 })

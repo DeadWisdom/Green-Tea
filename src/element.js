@@ -19,9 +19,13 @@ Tea.Element = Tea.Class('t-element', {
         html: null,
         cls: null,
         hidden: false,
-        appendTo: null,
+        appendTo: null,                 // Append the source to this element on render()
         attrs: {},
-        style: null
+        style: null,
+        width: null,
+        height: null,
+        resizeMaster: false,            // this.resize() will be called with the window is resized.
+        anchor: null                    // anchor information for the layout of the parent.
     },
     __postinit__ : function()
     {
@@ -44,9 +48,9 @@ Tea.Element = Tea.Class('t-element', {
         else
             this.source = this.skin.render();
         
-        this.onRender();
-        
         this.__rendered = true;
+        
+        this.onRender();
         
         return this.source;
     },
@@ -91,6 +95,22 @@ Tea.Element = Tea.Class('t-element', {
         if (this.isRendered())
             return this.skin.getHTML();
         return this.html;
+    },
+    findParent : function(type) {
+        var now = this.parent;
+        while(now) {
+            if (now instanceof type) {
+                return now;
+            }
+            now = now.parent;
+        }
+        console.error("Couldn't find a parent of", this, "of type", type);
+        throw new Error("Cannot find owner of the requested type");
+    },
+    resize : function()
+    {
+        if (this.isRendered())
+            return this.skin.resize();
     }
 });
 
@@ -117,12 +137,20 @@ Tea.Skin = Tea.Class('t-skin', {
         if (element.html)       this.setHTML(element.html);
         if (element.style)      source.css(element.style);
         
+        if (element.width != null) source.css('width', element.width);
+        if (element.height != null) source.css('height', element.height);
+        
         if (element.attrs)
             for(a in element.attrs)
                 source.attr(a, element.attrs[a]);
         
         if (element.hidden)
             source.hide();
+        
+        if (element.resizeMaster) {
+            jQuery(window).resize(Tea.method(element.resize, element));
+            element.resize();
+        }
         
         return source;
     },
@@ -143,5 +171,7 @@ Tea.Skin = Tea.Class('t-skin', {
             this.source.hide();
         else
             this.source.show();
+    },
+    resize : function() {
     }
 })

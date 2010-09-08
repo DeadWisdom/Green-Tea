@@ -90,24 +90,25 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
     },
     setBars : function(top, bottom)
     {
+        var element = this.element;
         if (top) {
-            if (top.length)
-                for(var i = 0; i < top.length; i++) {
-                    top[i].context = this.element;
-                }
             this.top = Tea.Container({cls: 't-bar t-top', items: top});
+            this.top.each(function(i, item) {
+                item.context = item.context || element;
+            })
             this.top.panel = this.element;
             this.title.after(this.top.render());
+            this.source.addClass('t-has-top');
         }
         if (bottom)
         {
-            if (bottom.length)
-                for(var i = 0; i < bottom.length; i++) {
-                    bottom[i].context = this.element;
-                }
             this.bottom = Tea.Container({cls: 't-bar t-bottom', items: bottom});
+            this.bottom.each(function(i, item) {
+                item.context = item.context || element;
+            })
             this.bottom.panel = this.element;
             this.content.after(this.bottom.render());
+            this.source.addClass('t-has-bottom');
         }
     },
     append : function(src)

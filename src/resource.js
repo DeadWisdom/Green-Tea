@@ -44,6 +44,6 @@ Tea.Session = Tea.Class('t-session', {
 });
 
 Tea._session = Tea.Session();
-Tea.Resource = function() { 
-    return Tea._session.resource.apply(Tea._session, arguments)
+Tea.Resource = function() {
+    return Tea._session.resource.apply(Tea._session, arguments);
 };

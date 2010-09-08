@@ -111,12 +111,12 @@ Tea.manifest = function(obj)
     if (jQuery.isFunction(obj)) return obj();
     if (obj.constructor != Object) return obj;
     
-    var cls = obj.type;
-    if (typeof cls == 'string')
-        cls = Tea.classes[cls];
+    var className = obj.type;
+    if (typeof className == 'string')
+        cls = Tea.classes[className];
     if (!cls) 
     {
-        throw new Error("Unable to instantiate object: " + cls);
+        throw new Error("Unable to instantiate object: " + className);
     }
     return new cls(obj);
 }

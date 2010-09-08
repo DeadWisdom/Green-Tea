@@ -132,5 +132,22 @@ Tea.Testing.Suite({
         field.setValue(false);
         
         assertEqual(field.getValue(), false);
+    },
+    
+    test_textarea : function()
+    {
+        var val1 = "This is a textarea.";
+        var val2 = val1 + " isn't it great?";
+        
+        var field = Tea.TextAreaField({
+            value: val1,
+            appendTo: "#content"
+        });
+        
+        assertEqual(field.getValue(), val1);
+        
+        field.setValue(val2);
+        
+        assertEqual(field.getValue(), val2);
     }
 });

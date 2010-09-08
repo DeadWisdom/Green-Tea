@@ -17,7 +17,7 @@ new Tea.Testing.Suite({
                 panel2
             ],
             style: {
-                width: 300,
+                width: 200,
                 height: 40,
                 margin: "10px 0px",
                 border: "1px solid #AAA",
@@ -44,9 +44,9 @@ new Tea.Testing.Suite({
         assertEqual(source[0].childNodes[0].childNodes[2].innerHTML, 'Panel 1');
         assertEqual(source[0].childNodes[1].childNodes[2].innerHTML, 'Panel 3');
         
-        for(var i = 0; i < 5; i++)
+        for(var i = 4; i < 8; i++)
             stack.push({
-                html: 'Panel X',
+                html: 'Panel ' + i,
                 type: 't-panel'
             })
     }

@@ -59,7 +59,7 @@ Tea.TextInput = Tea.Input.extend('t-text-input', {
         re: null,
         password: false,
         maxlength: null,
-        emptyText: null,
+        emptyText: null
     },
     isValid : function()
     {
@@ -98,7 +98,7 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
             source.attr('maxlength', this.element.maxlength);
             
         if (element.emptyText)
-            this.setupEmptyText();
+            this.setupEmptyText(element.emptyText);
             
         if (element.hasFocus)
             this.setFocus(true);
@@ -115,15 +115,17 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
     setValue : function(val)
     {
         this.source.val(val);
-        this.refreshEmpty();
+        if (this.emptyText)
+            this.refreshEmpty();
     },
     getValue : function()
     {
         if (this.empty) return "";
         return this.source.val();
     },
-    setupEmptyText : function()
+    setupEmptyText : function(t)
     {
+        this.emptyText = t;
         this.source.blur( Tea.method(this.refreshEmpty, this) );
         this.source.focus( Tea.method(this.clearEmpty, this) );
         this.refreshEmpty();
@@ -134,7 +136,7 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
         if (val == '')
         {
             this.empty = true;
-            this.source.val(this.element.emptyText);
+            this.source.val(this.emptyText);
             this.source.addClass('t-empty');
         }
         else 
@@ -151,6 +153,49 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
             this.source.removeClass('t-empty');
             this.empty = false;
         }
+    }
+});
+
+
+Tea.TextAreaInput = Tea.Input.extend('t-text-area-input', {
+    options : {
+        source: '<textarea>',
+        skin: 't-text-area-input',
+        blank: true
+    },
+    isValid : function()
+    {
+        var value = this.getValue();
+        if (!this.blank && jQuery.trim( value ) == "")
+            return false;
+        return true;
+    }
+});
+
+Tea.TextAreaInput.Skin = Tea.Skin.extend('t-text-area-input', {
+    render : function(source) {
+        var element = this.element;
+        source = this.__super__(source);
+        
+        if (element.hasFocus)
+            this.setFocus(true);
+        
+        return source;
+    },
+    setFocus : function(flag)
+    {
+        if (flag)
+            this.source.focus();
+        else
+            this.source.blur();
+    },
+    setValue : function(val)
+    {
+        this.source.val(val);
+    },
+    getValue : function()
+    {
+        return this.source.val();
     }
 });
 
@@ -174,8 +219,8 @@ Tea.SelectInput.Skin = Tea.Skin.extend('t-select-input-skin', {
             var display, value;
             if (choice.constructor === Array)
             {
-                display = choice[1];
                 value = choice[0];
+                display = choice[1];
             }
             else
             {
@@ -225,4 +270,3 @@ Tea.CheckBox = Tea.Skin.extend('t-checkbox', {
         
     }
 })
-
