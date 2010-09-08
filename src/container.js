@@ -104,9 +104,7 @@ Tea.Container = Tea.Element.extend('t-container', {
         return this.insert(0, item);
     },
     remove : function(item)
-    {
-        console.log(this, "remove()", item, item._index);
-        
+    {   
         if (!item) return this.__super__(); // Act as an element, remove this.
         if (item.parent !== this) return;
         
