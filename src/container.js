@@ -142,7 +142,7 @@ Tea.Container = Tea.Element.extend('t-container', {
     each : function(func, context)
     {
         context = context || this;
-        jQuery.each(this.items, function() { func.apply(context \, arguments) });
+        jQuery.each(this.items, function() { func.apply(context, arguments) });
     },
     resize : function()
     {
