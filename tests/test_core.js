@@ -165,5 +165,32 @@ Tea.Testing.Suite({
     test_app : function()
     {
         App = Tea.Application.extend('App', {});
+    },
+    
+    test_hook : function() {
+        var counter = 0;
+        
+        a = Tea.Object();
+        b = Tea.Object();
+        
+        a.hook(b, 'incr', function() { counter += 1; });
+        
+        assertEqual(counter, 0);
+        b.trigger('incr');
+        assertEqual(counter, 1);
+        b.trigger('incr');
+        assertEqual(counter, 2);
+        
+        a.unhookAll();
+        b.trigger('incr');
+        assertEqual(counter, 2);
+        
+        a.hook(b, 'incr', function() { counter += 1; });
+        b.trigger('incr');
+        assertEqual(counter, 3);
+        
+        a.unhook(b);
+        b.trigger('incr');
+        assertEqual(counter, 3);
     }
 })

@@ -14,6 +14,9 @@ Tea.Session = Tea.Class('t-session', {
     },
     resource : function(obj)
     {
+        if (obj instanceof Tea.Object)
+            return obj;
+        
         var key = obj[this.key];
             
         if (key == undefined || key == null) {

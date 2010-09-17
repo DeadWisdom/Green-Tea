@@ -300,15 +300,63 @@ Tea.Object.prototype = {
             delete this.__events[event];
         }
     },
-    
-    hook : function(other, event, handler)
-    {
+
+    /** Tea.Object.hook(target, event, handler, [args])
+        Binds onto the target, but does so in a manner that allows this object
+        to track its "hooks".  One can then unhook(target), or unhookAll() to
+        release the bind.  This is beneficial from a memory standpoint, as
+        hooks won't leak like a bind will.
         
+        target:
+            The target to bind onto.
+        
+        event:
+            An event name to bind.
+    
+        handler:
+            The function to call when the event is triggered.
+    
+        args (optional):
+            A list of arguments to pass into when calling the handler.
+     **/
+    hook : function(target, event, func, args) {
+        if (!this.__hooks) this.__hooks = [];
+        var handler = Tea.method(func, this);
+        target.bind(event, handler, args);
+        this.__hooks.push([target, event, handler]);
     },
     
-    unhook : function()
-    {
+    /** Tea.Object.unhook(target)
+        Unhooks all binds on target.
         
+        target:
+            The target to release all binds from.
+     **/
+    unhook : function(target)
+    {
+        if (!this.__hooks) return;
+        for(var i=0; i<this.__hooks.length; i++) {
+            var hook = this.__hooks[i];
+            if (target != hook[0]) continue;
+            var event =   hook[1];
+            var handler = hook[2];
+            target.unbind(event, handler);
+        }
+    },
+    
+    /** Tea.Object.unhookAll()
+        Unhooks all binds on all targets.
+     **/ 
+    unhookAll : function()
+    {
+        if (!this.__hooks) return;
+        while(this.__hooks.length > 0) {
+            var hook = this.__hooks.pop();
+            var target =  hook[0];
+            var event =   hook[1];
+            var handler = hook[2];
+            target.unbind(event, handler);
+        }
     },
     
     /** Tea.Object.prototype.trigger(name)

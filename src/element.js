@@ -64,11 +64,12 @@ Tea.Element = Tea.Class('t-element', {
     {
         if (this.parent)
             this.parent.remove(this);
-        else
-            this.source.remove();
+        else if (this.isRendered())
+            this.skin.remove();
             
         this.trigger('remove', this, this.parent);
         this.__rendered = false;
+        this.unhookAll();
     },
     hide : function()
     {
@@ -155,7 +156,10 @@ Tea.Skin = Tea.Class('t-skin', {
         return source;
     },
     remove : function() {
-        this.source.remove();
+        if (this.element.isRendered())
+            this.source.remove();
+        this.source = this.options.source;
+        this.unhookAll();
     },
     setHTML : function(src)
     {

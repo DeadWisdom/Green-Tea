@@ -83,7 +83,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
     {
         var item = this.__super__(item);
         var self = this;
-        item.bind('close', function()
+        this.hook(item, 'close', function()
         {
             self.pop(item);
         })

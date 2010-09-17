@@ -8,7 +8,7 @@
 Tea.Drag = Tea.Class('Tea.Drag', {
     __init__ : function(options)
     {
-        Tea.Drag.supertype.__init__.call(this, options);
+        this.__super__(options);
         
         this.active = null;
         
@@ -48,17 +48,17 @@ Tea.Draggable = Tea.Class('Tea.Draggable', {
     attach : function(element)
     {
         Tea.Drag.init();
-        
+            
         var self = this;
-        element.source.bind('mousedown', function(e) {
+        this.hook(element.source, 'mousedown', function(e) {
             if (element.options.drag_locked)
                 return;
             
             Tea.Drag.active = self;
-            self.origin = {left: e.clientX, top: e.clientY};            
+            self.origin = {left: e.pageX, top: e.pageY};
             self.element = element;
             self.begun = false;
-
+            
             // No idea why this works, but it allows events to continue durring the drag.
     		if (e.stopPropagation) e.stopPropagation();
     		if (e.preventDefault) e.preventDefault();
@@ -94,11 +94,11 @@ Tea.Draggable = Tea.Class('Tea.Draggable', {
         this.begun = true;
     },
     update : function(e)
-    {   
+    {
         if (!this.begun)
         {
-            var d1 = Math.abs(e.clientX - this.origin.left);
-            var d2 = Math.abs(e.clientY - this.origin.top);
+            var d1 = Math.abs(e.pageX - this.origin.left);
+            var d2 = Math.abs(e.pageY - this.origin.top);
             if (d1 < this.options.threshold || d2 < this.options.threshold)
                 return;
                 
@@ -107,21 +107,27 @@ Tea.Draggable = Tea.Class('Tea.Draggable', {
         
         if (this.options.snapToCursor)
         {
-            var left = e.clientX + 10;
-            var top = e.clientY - this.ghost.height() / 2;
+            var left = e.pageX + 1;
+            var top = e.pageY + 1;
         }
         else
         {
-            var left = e.clientX - this.delta.left;
-            var top = e.clientY - this.delta.top;
+            var left = e.pageX - this.delta.left;
+            var top = e.pageY - this.delta.top;
         }
         
-        Tea.Drag.overlay.css('left', left).css('top', top);
+        Tea.Drag.overlay.css({
+            left: left,
+            top: top
+        });
     },
     end : function(e)
-    {   
+    {
         if (this.ghost)
             this.ghost.remove();
+        
+        Tea.Drag.overlay.hide();
+        Tea.Drag.active = null;
         
         if (this.target)
         {
@@ -131,10 +137,6 @@ Tea.Draggable = Tea.Class('Tea.Draggable', {
         }
         else
             this.element.trigger('drop-nowhere');
-        
-        Tea.Drag.overlay.hide();
-        
-        Tea.Drag.active = null;
     }
 })
 
@@ -142,16 +144,19 @@ Tea.Droppable = Tea.Class('Tea.Droppable', {
     options: {
         accept: []
     },
-    attach : function(element)
+    attach : function(element, handle)
     {
         var cursor;
+        if (!handle) handle = element.source;
         
-        var onMouseOver = function(e)
+        Tea.Drag.init();
+        
+        var onHoverIn = function(e)
         {
             if (Tea.Drag.active)
-            {
-                cursor = element.source.css('cursor');
-                element.source.css('cursor', 'move');
+            {   
+                cursor = handle.css('cursor');
+                handle.css('cursor', 'move');
                 
                 Tea.Drag.active.target = element;
                 
@@ -160,18 +165,21 @@ Tea.Droppable = Tea.Class('Tea.Droppable', {
             }
         };
         
-        var onMouseOut = function(e)
+        var onHoverOut = function(e)
         {
             if (cursor)
             {
-                element.source.css('cursor', cursor);
+                handle.css('cursor', cursor);
                 cursor = null;
             }
                 
-            if (Tea.Drag.active)
+            if (Tea.Drag.active) {
                 Tea.Drag.active.target = null;
+            }
         }
         
-        element.source.hover(onMouseOver, onMouseOut);
+        handle
+            .mouseenter(onHoverIn)
+            .mouseleave(onHoverOut);
     }
 })

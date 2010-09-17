@@ -55,13 +55,13 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
         var anchor = this.anchor = $("<a class='t-focuser' href='#'>&#160;</a>");        
 
         anchor.has_focus = false;
-        this.anchor.bind('focus', function() { 
+        this.hook(this.anchor, 'focus', function() { 
             anchor.has_focus = true; 
             element.source.addClass('t-focus'); 
             element.trigger('focus') 
             Tea.Panel.focus = element;
         });
-        this.anchor.bind('blur', function() { 
+        this.hook(this.anchor, 'blur', function() { 
             anchor.has_focus = false;
             element.source.removeClass('t-focus');
             element.trigger('blur')

@@ -38,7 +38,12 @@ Tea.Dialog = Tea.Panel.extend('t-dialog', {
         this.skin.hide();
         if (this.scrim)
             this.scrim.hide();
-    }
+    },
+    onEscape : function() {
+        this.hide();
+    },
+    onEnter : function(e)
+    {}
 })
 
 Tea.Dialog.Skin = Tea.Panel.Skin.extend('t-dialog-skin', {
@@ -83,6 +88,13 @@ Tea.Dialog.Skin = Tea.Panel.Skin.extend('t-dialog-skin', {
             var self = this;
             setTimeout(function(){ self.hide() }, element.time);
         }
+        
+        $(document).keydown(function(e) {
+            if (e.keyCode == 13)
+                element.onEnter(e);
+            if (e.keyCode == 27)
+                element.onEscape(e);
+        })
     },
     hide : function()
     {

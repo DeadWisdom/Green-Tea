@@ -111,7 +111,7 @@ Tea.Container = Tea.Element.extend('t-container', {
         this.items.splice(item._index, 1);
         if (item.isRendered())
             item.skin.remove();
-            
+        
         item.parent = null;
         
         for(var i=0; i < this.items.length; i++)

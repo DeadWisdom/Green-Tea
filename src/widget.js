@@ -9,11 +9,13 @@ Tea.Widget = {}
 
 Tea.Button = Tea.Element.extend('t-button', {
     options: {
+        source: '<a>',
         text: '',
         icon: '',
         disabled: false,
         click: null,
         context: null,
+        hasFocus: null,
         skin: 't-button-skin'
     },
     __init__ : function(options)
@@ -37,6 +39,17 @@ Tea.Button = Tea.Element.extend('t-button', {
             this.skin.setIcon(this.icon);
         
         return source;
+    },
+    focus : function()
+    {
+        this.hasFocus = true;
+        if (this.isRendered())
+            this.skin.setFocus(true);
+    },
+    blur : function() {
+        this.hasFocus = false;
+        if (this.isRendered())
+            this.skin.setFocus(false);
     },
     setText : function(text)
     {
@@ -114,7 +127,17 @@ Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
         });
         
         source.bind('mouseup mouseout', function() {
-            source.removeClass('t-active')
+            source.removeClass('t-active');
+        });
+        
+        source.focus(function() {
+            element.hasFocus = true;
+            source.addClass('t-focus');
+        });
+        
+        source.blur(function() {
+            element.hasFocus = false;
+            source.removeClass('t-focus');
         });
         
         if (element.click)
@@ -131,6 +154,12 @@ Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
         )
         
         return source;
+    },
+    setFocus : function(flag) {
+        if (flag)
+            this.source.focus();
+        else
+            this.source.blur();
     },
     setText : function(text)
     {
