@@ -78,7 +78,7 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
         
         if (element.closable)
             this.closer = $("<div class='t-close t-icon CloseIcon'></div>")
-                            .appendTo(this.title)
+                            .appendTo(source)
                             .click(function() { element.close() });
         
         return source;

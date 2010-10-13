@@ -35,7 +35,8 @@ Tea.Dialog = Tea.Panel.extend('t-dialog', {
     },
     hide : function()
     {
-        this.skin.hide();
+        if (this.isRendered())
+            this.skin.hide();
         if (this.scrim)
             this.scrim.hide();
     },

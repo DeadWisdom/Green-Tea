@@ -83,6 +83,14 @@ Tea.Field = Tea.Element.extend('t-field', {
     {
         if (this.input)
             this.input.blur();
+    },
+    disable : function() {
+        if (this.input)
+            this.input.disable();
+    },
+    enable : function() {
+        if (this.input)
+            this.input.enable();
     }
 })
 
@@ -102,6 +110,16 @@ Tea.Field.Skin = Tea.Skin.extend('t-field-skin', {
         
         if (element.input != null)
             element.input.render().appendTo(source);
+            
+        if (this.label) {
+            this.label.click( function() { 
+                if (element.input && element.input.focus) element.input.focus()
+            });
+            if (element.clickToggles)
+                this.label.click( function() { 
+                    element.setValue(!element.getValue());
+                });
+        }
         
         this.error = $('<div class="t-error">');
         return source;
@@ -192,9 +210,10 @@ Tea.SelectField = Tea.Field.extend('t-select', {
     }
 });
 
-Tea.CheckBoxField = Tea.Field.extend('t-check-box', {
+Tea.CheckBoxField = Tea.Field.extend('t-checkbox', {
     options: {
-        input: 't-check-box-input'
+        input: 't-checkbox-input',
+        clickToggles: true
     }
 })
 

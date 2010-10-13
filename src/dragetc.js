@@ -146,7 +146,6 @@ Tea.Droppable = Tea.Class('Tea.Droppable', {
     },
     attach : function(element, handle)
     {
-        var cursor;
         if (!handle) handle = element.source;
         
         Tea.Drag.init();
@@ -155,9 +154,6 @@ Tea.Droppable = Tea.Class('Tea.Droppable', {
         {
             if (Tea.Drag.active)
             {   
-                cursor = handle.css('cursor');
-                handle.css('cursor', 'move');
-                
                 Tea.Drag.active.target = element;
                 
                 if (e.stopPropagation) e.stopPropagation();
@@ -166,13 +162,7 @@ Tea.Droppable = Tea.Class('Tea.Droppable', {
         };
         
         var onHoverOut = function(e)
-        {
-            if (cursor)
-            {
-                handle.css('cursor', cursor);
-                cursor = null;
-            }
-                
+        {   
             if (Tea.Drag.active) {
                 Tea.Drag.active.target = null;
             }

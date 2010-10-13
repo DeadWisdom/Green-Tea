@@ -130,14 +130,7 @@ Tea.Container = Tea.Element.extend('t-container', {
     },
     clear : function()
     {
-        for(var i=0; i < this.items.length; i++)
-        {
-            var item = this.items[i];
-            if (item.isRendered())
-                item.skin.remove();
-            item.parent = null;
-        }
-        this.items = [];
+        this.empty();
     },
     each : function(func, context)
     {

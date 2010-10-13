@@ -158,6 +158,7 @@ Tea.Skin = Tea.Class('t-skin', {
     remove : function() {
         if (this.element.isRendered())
             this.source.remove();
+        this.element.__rendered = false;
         this.source = this.options.source;
         this.unhookAll();
     },

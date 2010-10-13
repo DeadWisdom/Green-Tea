@@ -99,11 +99,18 @@ Tea.overrideMethod = function(super_func, func)
     }
 }
 
-/** Tea.manifest(obj)
+/** Tea.manifest([clsName], obj)
  **/
-Tea.manifest = function(obj)
+Tea.manifest = function(obj, spill_over)
 {
+    var className = null;
+    if (spill_over) {
+        className = obj;
+        obj = spill_over;
+    }
+    
     if (typeof obj == 'string') {
+        obj = className || obj;
         cls = Tea.getClass(obj);
         if (!cls) { throw new Error("Unable to find class: " + obj); }
         obj = cls;
@@ -111,7 +118,7 @@ Tea.manifest = function(obj)
     if (jQuery.isFunction(obj)) return obj();
     if (obj.constructor != Object) return obj;
     
-    var className = obj.type;
+    className = obj.type || className;
     if (typeof className == 'string')
         cls = Tea.classes[className];
     if (!cls) 
@@ -292,7 +299,7 @@ Tea.Object.prototype = {
         if (!handlers) return;
         if (handler) {
             jQuery.each(handlers, function(i, pair) {
-                if (pair[0] == handler) {
+                if (pair && pair[0] == handler) {
                     handlers.splice(i, 1);
                 }
             });

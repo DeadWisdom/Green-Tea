@@ -11,7 +11,8 @@
 Tea.Input = Tea.Element.extend('t-input', {
     options : {
         value: null,
-        hasFocus: false
+        hasFocus: false,
+        disabled: false
     },
     render : function(source)
     {
@@ -48,6 +49,20 @@ Tea.Input = Tea.Element.extend('t-input', {
             this.skin.setFocus(false);
         else
             this.hasFocus = false;
+    },
+    disable : function()
+    {
+        if (this.isRendered())
+            this.skin.setDisabled(true);
+        else
+            this.disabled = true;
+    },
+    enable : function()
+    {
+        if (this.isRendered())
+            this.skin.setDisabled(false);
+        else
+            this.disabled = false;
     }
 });
 
@@ -102,6 +117,9 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
             
         if (element.hasFocus)
             this.setFocus(true);
+            
+        if (element.disabled)
+            this.setDisabled(true);
         
         return source;
     },
@@ -152,6 +170,15 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
             this.source.val("");
             this.source.removeClass('t-empty');
             this.empty = false;
+        }
+    },
+    setDisabled : function(flag) {
+        if (flag) {
+            this.source.addClass('t-disabled');
+            this.source.attr('readonly', 'readonly');
+        } else {
+            this.source.removeClass('t-disabled');
+            this.source.attr('readonly', null);
         }
     }
 });
@@ -243,18 +270,25 @@ Tea.SelectInput.Skin = Tea.Skin.extend('t-select-input-skin', {
         var index = this.value_to_index[v];
         if (index == undefined) return;
         this.source[0].selectedIndex = index;
+    },
+    setFocus : function(flag)
+    {
+        if (flag)
+            this.source.focus();
+        else
+            this.source.blur();
     }
 });
 
-Tea.CheckBoxInput = Tea.Input.extend('t-check-box-input', {
+Tea.CheckBoxInput = Tea.Input.extend('t-checkbox-input', {
     options: {
         source: '<input type="checkbox"/>',
-        skin: 't-check-box-input-skin',
+        skin: 't-checkbox-input-skin',
         choices: null
     }
 });
 
-Tea.CheckBoxInput.Skin = Tea.Skin.extend('t-check-box-input-skin', {
+Tea.CheckBoxInput.Skin = Tea.Skin.extend('t-checkbox-input-skin', {
     getValue : function()
     { 
         return this.source.attr('checked')
@@ -262,11 +296,12 @@ Tea.CheckBoxInput.Skin = Tea.Skin.extend('t-check-box-input-skin', {
     setValue : function(v)
     {
         this.source.attr('checked', v ? 'checked' : '')
+    },
+    setFocus : function(flag)
+    {
+        if (flag)
+            this.source.focus();
+        else
+            this.source.blur();
     }
 });
-
-Tea.CheckBox = Tea.Skin.extend('t-checkbox', {
-    options : {
-        
-    }
-})
