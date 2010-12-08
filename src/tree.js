@@ -50,6 +50,14 @@ Tea.Tree = Tea.Container.extend('t-tree-item', {
     {
         this.__super__();
         this.setExpanded(this.expanded);
+    },
+    walk : function(func)
+    {
+        for(var i = 0; i < this.items.length; i++) {
+            func(this.items[i]);
+            var next = this.items[i].walk;
+            if (next) next(func);
+        }
     }
 });
 

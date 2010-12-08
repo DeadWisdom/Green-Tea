@@ -109,6 +109,8 @@ Tea.manifest = function(obj, spill_over)
         obj = spill_over;
     }
     
+    if (obj instanceof Tea.Object) return obj;
+    
     if (typeof obj == 'string') {
         obj = className || obj;
         cls = Tea.getClass(obj);
@@ -781,6 +783,12 @@ Tea.latent = function(milliseconds, func, context)
         timeout = setTimeout(call, milliseconds)
     }
     
+    function trip()
+    {
+        call();
+        refresh();
+    }
+    
     function cancel()
     {
         if (timeout)
@@ -794,6 +802,7 @@ Tea.latent = function(milliseconds, func, context)
         refresh();
     }
     
+    self.trip = trip;
     self.call = call;
     self.refresh = refresh;
     self.cancel = cancel;

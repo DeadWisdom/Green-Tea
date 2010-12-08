@@ -13,19 +13,21 @@
  **/
 Tea.Element = Tea.Class('t-element', {
     options: {
-        source: '<div/>',               // Source of the element.
-        skin: 't-skin',                 // The element skin.
-        id: null,
-        html: null,
-        cls: null,
-        hidden: false,
-        appendTo: null,                 // Append the source to this element on render()
-        attrs: {},
-        style: null,
-        width: null,
-        height: null,
-        resizeMaster: false,            // this.resize() will be called with the window is resized.
-        anchor: null                    // anchor information for the layout of the parent.
+        source: '<div/>',         // source of the element
+        skin: 't-skin',           // the element skin                                        
+        id: null,                                                                                 
+        html: null,                                                                               
+        cls: null,                                                                                
+        hidden: false,                                                                            
+        appendTo: null,           // append the source to this element on render()                
+        attrs: {},                                                                                
+        style: null,                                                                              
+        width: null,                                                                              
+        height: null,                                                                             
+        resizeMaster: false,      // this.resize() will be called with the window is resized
+        anchor: null,             // anchor information for the layout of the parent      
+        behaviors: null           // a behavior is some object that has an .attach(element)
+                                  // function, called at render time     
     },
     __postinit__ : function()
     {
@@ -52,6 +54,16 @@ Tea.Element = Tea.Class('t-element', {
         
         this.onRender();
         
+        var behaviors = this.behaviors;
+        var self = this;
+        if (behaviors) {
+            this.behaviors = jQuery.map(behaviors, function(b) {
+                b = Tea.manifest(b);
+                b.attach(self);
+                return b;
+            })
+        }
+        
         return this.source;
     },
     onRender : function()
@@ -63,10 +75,11 @@ Tea.Element = Tea.Class('t-element', {
     remove : function()  // Remove from element's parent and source's parent
     {
         if (this.parent)
-            this.parent.remove(this);
-        else if (this.isRendered())
+            return this.parent.remove(this);
+        
+        if (this.isRendered())
             this.skin.remove();
-            
+        
         this.trigger('remove', this, this.parent);
         this.__rendered = false;
         this.unhookAll();
@@ -105,7 +118,6 @@ Tea.Element = Tea.Class('t-element', {
             }
             now = now.parent;
         }
-        console.error("Couldn't find a parent of", this, "of type", type);
         throw new Error("Cannot find owner of the requested type");
     },
     resize : function()

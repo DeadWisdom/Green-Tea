@@ -91,7 +91,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
     },
     popAfter : function( item )
     {
-        if (item.parent !== this) throw new Error("Trying to popAfter() an item that isn't in this Tea.Stack");
+        if (item.parent !== this) return; // throw new Error("Trying to popAfter() an item that isn't in this Tea.Stack");
         
         this.pause();
         

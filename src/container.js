@@ -109,22 +109,19 @@ Tea.Container = Tea.Element.extend('t-container', {
         if (item.parent !== this) return;
         
         this.items.splice(item._index, 1);
-        if (item.isRendered())
-            item.skin.remove();
         
         item.parent = null;
-        
+        item.remove();
+                
         for(var i=0; i < this.items.length; i++)
             this.items[i]._index = i;
     },
     empty : function()
     {
-        for(var i=0; i < this.items.length; i++)
-        {
-            var item = this.items[i];
-            if (item.isRendered())
-                item.skin.remove();
+        while(this.items.length > 0) {
+            var item = this.items.pop();
             item.parent = null;
+            item.remove();
         }
         this.items = [];
     },
