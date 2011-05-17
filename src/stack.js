@@ -12,7 +12,7 @@
 Tea.Stack = Tea.Container.extend('t-stack', {
     options: {
         skin: 't-stack-skin',
-        margin: 6,
+        margin: 0,
 //        anchor: 0
     },
     __init__ : function(options)
@@ -55,7 +55,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
             this.play();
         }
         
-        this.append(item);
+        return this.append(item);
     },
     /** Tea.Stack.pop( [item] )
         
@@ -156,6 +156,7 @@ Tea.Stack.Skin = Tea.Container.Skin.extend('t-stack-skin', {
         
         var start = items.length - show;
         var left = gutter;
+        var z = 10000;
         
         element.each(function(index, item) {
             if (index < start) {
@@ -163,10 +164,13 @@ Tea.Stack.Skin = Tea.Container.Skin.extend('t-stack-skin', {
                 return;
             }
             
+            z = z - 1;
+            
             if (item == new_item)
                 item.source.css({
                   left: left,
                   opacity: 0,
+                  'z-index': z
                 });
             
             item.source

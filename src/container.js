@@ -10,7 +10,6 @@
 Tea.Container = Tea.Element.extend('t-container', {
     options: {
         items: null,
-        fields: null,
         skin: 't-container-skin',
         layout: null
     },
@@ -19,7 +18,6 @@ Tea.Container = Tea.Element.extend('t-container', {
         this.__super__(options);
         var items = jQuery.makeArray(this.items);
         this.items = [];
-        this.fields = {};
         
         var container = this;
         jQuery.each(items, function(index, item) {
@@ -39,24 +37,27 @@ Tea.Container = Tea.Element.extend('t-container', {
         
         item.parent = this;
         
-        if (item.name)
-            this.fields[item.name] = item;
-        
         return item;
     },
     setValue : function(value)
     {
         if (value == null || value == undefined) return;
         
-        for(var key in this.fields)
-            if (value[key] != undefined)
-                this.fields[key].setValue(value[key]);
+        for(var i = 0; i < this.items.length; i++) {
+            var k = this.items[i].name;
+            if (value[k] != undefined) {
+                this.items[i].setValue(value[k]);
+            }
+        }
     },
     getValue : function()
     {   
         var gather = {};
-        for(var key in this.fields)
-            gather[key] = this.fields[key].getValue();
+        for(var i = 0; i < this.items.length; i++) {
+            var item = this.items[i];
+            if (item.name && jQuery.isFunction(item.getValue))
+                gather[item.name] = item.getValue();
+        }
         return gather;
     },
     append : function(item)

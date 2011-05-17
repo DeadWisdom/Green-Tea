@@ -54,14 +54,14 @@ Tea.Dialog.Skin = Tea.Panel.Skin.extend('t-dialog-skin', {
     resize : function(speed)
     {
         var element = this.element;
-        var source = this.source;
+        var source = this.source.stop();
         
         var height = source.height();
         if (height > $(document).height() - 8)
             source.height($(document).height() - 8);
         
         if (element.placement == 'top')
-            source.animate( {top: 20, 
+            source.animate( {top: 20,
                              opacity: element.opacity}, 
                              speed || element.speed, element.easing);
         else if (element.placement == 'center')

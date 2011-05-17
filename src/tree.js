@@ -8,13 +8,13 @@
     @extends Tea.Container
  **/
 
-Tea.Tree = Tea.Container.extend('t-tree-item', {
+Tea.Tree = Tea.Container.extend('t-tree', {
     options: {
         expanded: false,
         icon: null,
         text: null,
         skin: 'Tea.Tree.Skin',
-        click: null,
+        /*click: null,*/
         context: null
     },
     expand : function() {
@@ -30,6 +30,9 @@ Tea.Tree = Tea.Container.extend('t-tree-item', {
     setExpanded : function(flag) {
         if (flag) return this.expand();
         return this.collapse();
+    },
+    clickAnchor : function() {
+        this.setExpanded(!this.expanded);
     },
     setText : function(src) {
         this.text = src;
@@ -63,7 +66,7 @@ Tea.Tree = Tea.Container.extend('t-tree-item', {
 
 Tea.Tree.Skin = Tea.Container.Skin.extend('Tea.Tree.Skin', {
     options: {
-        cls: 't-tree-item'
+        cls: 't-tree'
     },
     render : function(source) {
         this.head = $('<div class="t-head">');
@@ -76,9 +79,13 @@ Tea.Tree.Skin = Tea.Container.Skin.extend('Tea.Tree.Skin', {
         this.button = Tea.Button({
             text: this.element.text,
             icon: this.element.icon,
-            click: Tea.method(this.element.click || jQuery.noop, this.element.context || this.element)
+            click: this.element.click ? Tea.method(this.element.click || jQuery.noop, this.element.context || this.element) : null,
+            href: this.element.href
         });
         this.button.render().appendTo(this.head);
+        
+        if (this.element.text == null)
+            this.button.hide();
         
         this.anchor = $('<div class="t-anchor t-icon">')
                         .prependTo(this.button.source)
@@ -100,6 +107,11 @@ Tea.Tree.Skin = Tea.Container.Skin.extend('Tea.Tree.Skin', {
     },
     setText : function(src) {
         this.button.setText(src);
+        if (src == null) {
+            this.button.hide();
+        } else {
+            this.button.show();
+        }
     },
     setIcon : function(icon) {
         this.button.setIcon(icon);
@@ -122,7 +134,7 @@ Tea.Tree.Skin = Tea.Container.Skin.extend('Tea.Tree.Skin', {
         else this.tail.hide();
     },
     clickAnchor : function() {
-        this.element.setExpanded(!this.element.expanded);
+        this.element.clickAnchor();
         return false;
     },
     setAnchor : function(anchor) {

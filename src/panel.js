@@ -13,6 +13,18 @@ Tea.Panel = Tea.Container.extend('t-panel', {
         bottom: null,
         skin: 't-panel-skin'
     },
+    setTop : function(bar) {
+        if (this.isRendered())
+            this.top = bar;
+        else
+            this.skin.setBar('top', bar);
+    },
+    setBottom : function(bar) {
+        if (this.isRendered())
+            this.bottom = bar;
+        else
+            this.skin.setBar('bottom', bar);
+    },
     setTitle : function(title)
     {
         this.title = title;
@@ -74,42 +86,56 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
         source.append(this.title);
         source.append(this.content);
         
-        this.setBars(element.top, element.bottom);
-        
         if (element.closable)
-            this.closer = $("<div class='t-close t-icon CloseIcon'></div>")
+            this.closer = $("<div class='t-close t-icon icon-close'></div>")
                             .appendTo(source)
                             .click(function() { element.close() });
+        
+        if (element.top)
+            this.setBar('top', element.top);
+            
+        if (element.bottom)
+            this.setBar('bottom', element.bottom);
         
         return source;
         
     },
+    setBar : function(position, bar) {
+        var element = this.element;
+        var existing = element[position];
+        if (existing instanceof Tea.Object) {
+            if (existing.isRendered())
+                existing.remove();
+            this.source.removeClass('t-has-' + position);
+        }
+        element[position] = null;
+        
+        if (!bar) return;
+        
+        if (jQuery.isArray(bar))
+            bar = {
+                type: 't-container',
+                items: bar,
+                cls: 't-bar t-' + position
+            };
+        
+        var bar = element[position] = Tea.manifest(bar);
+        bar.each(function(i, item) {
+            item.context = item.context || element;
+        });
+        
+        bar.panel = element;
+        
+        if (position == 'top')
+            this.content.before(bar.render());
+        else
+            this.content.after(bar.render());
+        
+        this.source.addClass('t-has-' + position);
+    },
     setTitle : function(title)
     {
         this.title.empty().append(title);
-    },
-    setBars : function(top, bottom)
-    {
-        var element = this.element;
-        if (top) {
-            this.top = Tea.Container({cls: 't-bar t-top', items: top});
-            this.top.each(function(i, item) {
-                item.context = item.context || element;
-            })
-            this.top.panel = this.element;
-            this.title.after(this.top.render());
-            this.source.addClass('t-has-top');
-        }
-        if (bottom)
-        {
-            this.bottom = Tea.Container({cls: 't-bar t-bottom', items: bottom});
-            this.bottom.each(function(i, item) {
-                item.context = item.context || element;
-            })
-            this.bottom.panel = this.element;
-            this.content.after(this.bottom.render());
-            this.source.addClass('t-has-bottom');
-        }
     },
     append : function(src)
     {

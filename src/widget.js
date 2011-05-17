@@ -13,10 +13,10 @@ Tea.Button = Tea.Element.extend('t-button', {
         text: '',
         icon: '',
         disabled: false,
-        click: null,
         context: null,
         hasFocus: null,
-        skin: 't-button-skin'
+        skin: 't-button-skin',
+        href: null
     },
     __init__ : function(options)
     {
@@ -67,6 +67,16 @@ Tea.Button = Tea.Element.extend('t-button', {
         if (this.isRendered())
             this.skin.setIcon(icon);
     },
+    getHref : function()
+    {
+        return this.href;
+    },
+    setHref : function(href)
+    {
+        this.href = href;
+        if (this.isRendered())
+            this.skin.setHref(href);
+    },
     getIcon : function()
     {
         return this.icon;
@@ -90,13 +100,15 @@ Tea.Button = Tea.Element.extend('t-button', {
     },
     performClick : function()
     {
+        if (!this.click && this.href) return true;
+        if (!this.click) return false;
         if (this.disabled) return false;
         
         var context = this.context || this;
         
         try {
             if (typeof(this.click) == 'string') return context[this.click].apply(context);
-            if (typeof(this.click) == 'function') return this.click.apply(context);
+            if (jQuery.isFunction(this.click)) return this.click.apply(context);
         } catch(e) {
             if (console && console.error)
                 console.error(e);
@@ -140,9 +152,8 @@ Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
             source.removeClass('t-focus');
         });
         
-        if (element.click)
-            source.click(Tea.method(element.performClick, element));
-            
+        element.hook(source, 'click', element.performClick);
+        
         source.hover(
             function() {
                 if (!element.disabled)
@@ -152,6 +163,9 @@ Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
                 source.removeClass('t-button-hover');
             }
         )
+        
+        if (element.href)
+            this.setHref(element.href);
         
         return source;
     },
@@ -164,6 +178,9 @@ Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
     setText : function(text)
     {
         this.text.empty().append(text);
+    },
+    setHref : function(href) {
+        this.source.attr('href', href);
     },
     setIcon : function(icon)
     {

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!env/bin/python
 
 modules = [
     'Tea',
@@ -9,7 +9,7 @@ modules = [
     'Tea.Input',
     'Tea.Panel',
     'Tea.List',
-    'Tea.Resource',
+    #'Tea.Resource',
     'Tea.Stack',
     'Tea.Template',
     'Tea.Testing',

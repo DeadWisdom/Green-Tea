@@ -253,7 +253,7 @@ Tea.Object.prototype = {
         This is not used by the internals of Tea, so that one can use it for
         final, user generated classes.  It is called after __init__.
     **/
-    init : jQuery.noop,
+    init : function() {},
     
     /** Tea.Object.toString()
         
