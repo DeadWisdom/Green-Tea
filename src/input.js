@@ -74,7 +74,9 @@ Tea.TextInput = Tea.Input.extend('t-text-input', {
         re: null,
         password: false,
         maxlength: null,
-        emptyText: null
+        emptyText: null,
+        input_type: 'text',
+        placeholder: null
     },
     isValid : function()
     {
@@ -93,7 +95,7 @@ Tea.TextInput = Tea.Input.extend('t-text-input', {
 
 Tea.PasswordInput = Tea.TextInput.extend('t-password-input', {
     options : {
-        password: true
+        input_type: 'password'
     }
 });
 
@@ -104,14 +106,14 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
         var element = this.element;
         source = this.__super__(source);
         
-        if (element.password)
-            source.attr('type', 'password');
-        else
-            source.attr('type', 'text');
-            
+        source.attr('type', this.element.input_type);
+        
+        if (this.element.placeholder)
+            source.attr('placeholder', this.element.placeholder);
+        
         if (element.maxlength)
             source.attr('maxlength', this.element.maxlength);
-            
+        
         if (element.emptyText)
             this.setupEmptyText(element.emptyText);
             

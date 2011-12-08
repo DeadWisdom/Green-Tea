@@ -62,6 +62,9 @@ Tea.Container = Tea.Element.extend('t-container', {
     },
     append : function(item)
     {
+        if (item.parent == this)
+            return item;
+            
         item = this.own(item);
         
         item._index = this.items.length;
@@ -80,6 +83,9 @@ Tea.Container = Tea.Element.extend('t-container', {
         
         if (pos >= this.items.length)
             return this.append(item);
+        
+        if (item.parent == this)
+            return item;
         
         item = this.own(item);
         
@@ -102,6 +108,8 @@ Tea.Container = Tea.Element.extend('t-container', {
     },
     prepend : function(item)
     {
+        if (item.parent == this)
+            return item;
         return this.insert(0, item);
     },
     remove : function(item)
@@ -128,7 +136,12 @@ Tea.Container = Tea.Element.extend('t-container', {
     },
     clear : function()
     {
-        this.empty();
+        while(this.items.length > 0) {
+            var item = this.items.pop();
+            item.parent = null;
+            item.remove();
+        }
+        this.items = [];
     },
     each : function(func, context)
     {

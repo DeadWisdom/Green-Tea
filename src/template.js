@@ -61,10 +61,15 @@ Tea.Template = Tea.Class({
         
         var path = variable.split('.');
         var value = context;
+        var candidate = null;
         for( var i = 0; i < path.length; i++)
         {
             if (path[i] == '*') continue;
-            value = value[path[i]];
+            candidate = value[parseInt(path[i])];
+            if (candidate != undefined)
+                value = candidate;
+            else
+                value = value[path[i]];
             if (value == undefined)
                 if (this.missing_throws)
                     throw new Error("Unable to find variable in context: " + path.join("."));

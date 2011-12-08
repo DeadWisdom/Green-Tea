@@ -98,8 +98,10 @@ Tea.Button = Tea.Element.extend('t-button', {
         else
             this.disabled = bool;
     },
-    performClick : function()
+    performClick : function(e)
     {
+        this.trigger('click', [e]);
+        
         if (!this.click && this.href) return true;
         if (!this.click) return false;
         if (this.disabled) return false;
@@ -152,7 +154,7 @@ Tea.Button.Skin = Tea.Skin.extend('t-button-skin', {
             source.removeClass('t-focus');
         });
         
-        element.hook(source, 'click', element.performClick);
+        source.bind('click', Tea.method(element.performClick, element));
         
         source.hover(
             function() {

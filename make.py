@@ -16,6 +16,7 @@ modules = [
     'Tea.Tree',
     'Tea.Widget',
     'Tea.Drag',
+    'Tea.Popup',
 ]
 
 import jsbundle

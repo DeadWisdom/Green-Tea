@@ -204,6 +204,10 @@ Tea.Options = function(options) {
             return extendClass(cls, name, properties);
         }
         
+        cls.implements = function(properties) {
+            Tea.extend(prototype, properties);
+        }
+        
         cls.prototype = prototype;
         cls.__name__ = name;
         cls.__super__ = base;
@@ -466,8 +470,9 @@ Tea.Application = Tea.Class('t-app',
  **/
 Tea.toJSON = function(o)
 {
-    if (JSON && JSON.stringify)
+    try {
         return JSON.stringify(o);
+    } catch (e) {};
     
     var type = typeof(o);
 

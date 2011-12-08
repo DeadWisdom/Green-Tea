@@ -38,6 +38,7 @@ Tea.Element = Tea.Class('t-element', {
         this.__rendered = false;
         this.__super__(options);
         this.parent = null;
+        this.source = $(this.source);
     },
     render : function(source) {
         if (this.__rendered) return this.source;
