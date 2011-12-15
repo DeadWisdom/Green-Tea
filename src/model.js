@@ -24,7 +24,7 @@ Tea.Model.subclass = function(Base, name, properties)
     
     jQuery.extend(Model, properties.__class__);
     Model.subclass = function(name, properties) { return Tea.Model.subclass(Model, name, properties) }
-    Model.cache = {};
+    Model.cache = null;
     
     return Model;
 }
@@ -55,6 +55,16 @@ Tea.Model.Base = Tea.Class('Tea.Model', {
                 return existing.setValue(value);
             
             return new this(value);
+        },
+        /* retrieve and object from the cache. If the cache has not been initialzed
+            initialize it as an empty object. Check localstorage for cached data for this model
+            and populat. If cached data exist 
+        */
+        from_cache: function (pk) {
+            if(cache === null) {
+                this.cache = {};
+            }
+            return this.cache[pk];
         },
         
         query : function(override)
