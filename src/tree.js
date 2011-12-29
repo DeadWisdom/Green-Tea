@@ -56,10 +56,13 @@ Tea.Tree = Tea.Container.extend('t-tree', {
     },
     walk : function(func)
     {
+        if (!this.items) return;
+        
         for(var i = 0; i < this.items.length; i++) {
-            func(this.items[i]);
-            var next = this.items[i].walk;
-            if (next) next(func);
+            var item = this.items[i];
+            func.call(this, item);
+            var next = item.walk;
+            if ($.isFunction(next)) next.call(item, func);
         }
     }
 });
@@ -76,7 +79,8 @@ Tea.Tree.Skin = Tea.Container.Skin.extend('Tea.Tree.Skin', {
         
         source.append(this.head).append(this.tail);
         
-        this.button = Tea.Button({
+        this.button = Tea.manifest({
+            type: 't-button',
             text: this.element.text,
             icon: this.element.icon,
             click: this.element.click ? Tea.method(this.element.click || jQuery.noop, this.element.context || this.element) : null,
