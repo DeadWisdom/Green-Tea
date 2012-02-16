@@ -11,65 +11,62 @@
             A jQuery element that serves as the base for manipulating the object.  In the case 
             of a string or dom element, it is run through the jQuery ($) function.
  **/
-Tea.Element = Tea.Class('Tea.Element', {
+Tea.Element = Tea.Class('t-element', {
     options: {
-        source: '<div/>',               // Source of the element.
-        skin: null,                     // The element skin.
-        id: null,
-        html: null,
-        cls: null,
-        hidden: false,
-        behaviors: [],
-        attrs: {}
+        source: '<div/>',         // source of the element
+        skin: 't-skin',           // the element skin                                        
+        id: null,                                                                                 
+        html: null,                                                                               
+        cls: null,                                                                                
+        hidden: false,                                                                            
+        appendTo: null,           // append the source to this element on render()                
+        attrs: {},                                                                                
+        style: null,                                                                              
+        width: null,                                                                              
+        height: null,                                                                             
+        resizeMaster: false,      // this.resize() will be called with the window is resized
+        anchor: null,             // anchor information for the layout of the parent      
+        behaviors: null           // a behavior is some object that has an .attach(element)
+                                  // function, called at render time     
+    },
+    __postinit__ : function()
+    {
+        if (this.appendTo)
+            this.render().appendTo(this.appendTo);
     },
     __init__ : function(options) {
         this.__rendered = false;
         this.__super__(options);
         this.parent = null;
-        
-        var skin = this.skin;
-        if (typeof skin == 'string')
-            this.skin = new (Tea.getClass(skin))(this);
-        else if (typeof skin == 'function')
-            this.skin = new skin(this);
-        else if (skin == null)
-        {
-            var skinCls = null;
-            var cls = this.constructor;
-            while(!skinCls && cls && cls != Tea.Object)
-            {
-                skinCls = Tea.classes[cls.id + '.Skin'];
-                cls = cls.supertype.constructor;
-            }
-            
-            if (skinCls)
-                this.skin = new skinCls(this);
-            else
-                throw new Error("Element.skin is set to null, but no skin can be found.");
-        }
-        else
-            throw new Error("Element.skin must be set to null, a function, or a string which cooresponds to a Skin class.");
+        this.source = $(this.source);
     },
     render : function(source) {
         if (this.__rendered) return this.source;
+        
+        var skin = Tea.manifest(this.skin);
+        skin.attach(this);
         
         if (source)
             this.source = this.skin.render($(source));
         else
             this.source = this.skin.render();
         
-        if (this.__latentBinds)
-            for (var i in this.__latentBinds)
-                this.addEventListener.apply(this, this.__latentBinds[i]);
-        
-        var behaviors = this.behaviors;
-        if (behaviors && behaviors.length > 0)
-            for(var i = 0; i < behaviors.length; i++)
-                this.addBehavior(behaviors[i]);
+        this.__rendered = true;
         
         this.onRender();
         
-        this.__rendered = true;
+        var behaviors = this.behaviors;
+        var self = this;
+        if (behaviors) {
+            this.behaviors = jQuery.map(behaviors, function(b) {
+                b = Tea.manifest(b);
+                b.attach(self);
+                return b;
+            })
+        }
+        
+        if (this.source.closest('html').length > 0)
+            this.resize();
         
         return this.source;
     },
@@ -82,44 +79,14 @@ Tea.Element = Tea.Class('Tea.Element', {
     remove : function()  // Remove from element's parent and source's parent
     {
         if (this.parent)
-            return this.parent.remove(this);
+            return this.parent.removeItem(this);
         
         if (this.isRendered())
-            this.source.remove();
+            this.skin.remove();
         
-        this.trigger('remove');
-    },
-    addEventListener : function(type, handle)    // For events, binds any dom events to the source.
-    {
-        if (!this.__rendered)
-        {
-            if (!this.__latentBinds)
-                this.__latentBinds = [];
-            return this.__latentBinds.push([type, handle]);
-        }
-        
-        for(var i = 0; i < this.source.length; i++)
-        {
-            var elem = this.source[i];
-        
-    		if (elem.addEventListener)
-    			elem.addEventListener(type, handle, false);
-    		else if (elem.attachEvent)
-    			elem.attachEvent("on" + type, handle);
-    	}
-    },
-    addBehavior : function(b)
-    {
-        if (b.constructor === Object)
-        {
-            var cls = Tea.classes[b.type];
-            if (!cls)
-                throw new Error("Attempt to add behavior to this element, an Object instance with no valid type: " + item.type);
-                
-            b = new cls(b);
-        }
-        
-        b.attach(this);
+        this.trigger('remove', this, this.parent);
+        this.__rendered = false;
+        this.unhookAll();
     },
     hide : function()
     {
@@ -131,27 +98,50 @@ Tea.Element = Tea.Class('Tea.Element', {
     },
     setHidden : function(flag)
     {
-        if (this.__rendered)
+        if (this.isRendered())
             this.skin.setHidden(flag);
-        else
-            this.hidden = flag;
+        this.hidden = flag;
     },
     setHTML : function(html)
     {
-        if (this.__rendered)
-            this.skin.setHTML(html)
-        else
-            this.html = html;
+        if (this.isRendered())
+            this.skin.setHTML(html);
+        this.html = html;
+    },
+    getHTML : function()
+    {
+        if (this.isRendered())
+            return this.skin.getHTML();
+        return this.html;
+    },
+    findParent : function(type) {
+        var now = this.parent;
+        while(now) {
+            if (now instanceof type) {
+                return now;
+            }
+            now = now.parent;
+        }
+        throw new Error("Cannot find owner of the requested type");
+    },
+    resize : function()
+    {
+        if (this.isRendered())
+            return this.skin.resize();
     }
 });
 
-Tea.Element.Skin = Tea.Object.subclass('Tea.Element.Skin', {
+Tea.Skin = Tea.Class('t-skin', {
     options: {},
-    __init__ : function(element)
+    __init__ : function(options)
     {
+        this.element = null;
+        this.source = null;
         this.__super__();
+    },
+    attach : function(element) {
         this.element = element;
-        this.source = element.source;
+        element.skin = this;
     },
     render : function(source) {
         var element = this.element;
@@ -162,26 +152,39 @@ Tea.Element.Skin = Tea.Object.subclass('Tea.Element.Skin', {
         if (element.cls)        source.addClass(element.cls);
         if (this.cls)           source.addClass(this.cls);
         if (element.html)       this.setHTML(element.html);
+        if (element.style)      source.css(element.style);
+        
+        if (element.width != null) source.css('width', element.width);
+        if (element.height != null) source.css('height', element.height);
         
         if (element.attrs)
             for(a in element.attrs)
                 source.attr(a, element.attrs[a]);
         
-        if (element.style)
-            for(var i in element.style)
-                source.css(i, element.style[i]);
-        
         if (element.hidden)
             source.hide();
+        
+        if (element.resizeMaster) {
+            jQuery(window).resize(Tea.method(element.resize, element));
+            element.resize();
+        }
         
         return source;
     },
     remove : function() {
-        this.source.remove();
+        if (this.element.isRendered())
+            this.source.remove();
+        this.element.__rendered = false;
+        this.source = this.options.source;
+        this.unhookAll();
     },
     setHTML : function(src)
     {
-        this.source.empty().append(src);
+        this.source.html(src);
+    },
+    getHTML : function()
+    {
+        return this.source.html();
     },
     setHidden : function(flag)
     {
@@ -189,5 +192,7 @@ Tea.Element.Skin = Tea.Object.subclass('Tea.Element.Skin', {
             this.source.hide();
         else
             this.source.show();
+    },
+    resize : function() {
     }
 })

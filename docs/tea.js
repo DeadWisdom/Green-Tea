@@ -854,16 +854,7 @@ Tea.Element = Tea.Class('Tea.Element', {
     },
     addBehavior : function(b)
     {
-        if (b.constructor === Object)
-        {
-            var cls = Tea.classes[b.type];
-            if (!cls)
-                throw new Error("Attempt to add behavior to this element, an Object instance with no valid type: " + item.type);
-                
-            b = new cls(b);
-        }
-        
-        b.attach(this);
+        Tea.manifest(b).attach(this);
     },
     hide : function()
     {

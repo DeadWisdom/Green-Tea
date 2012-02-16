@@ -1,7 +1,7 @@
 /** Tea.Template
 
     Naive template implementation.
-    NOTE: There is no escaping done here.
+    NOTE: There is no escaping done here, only apply on trusted data.
     
     @requires Tea
     
@@ -35,7 +35,7 @@ Tea.Template = Tea.Class({
     __init__ : function(src, options)
     {
         this.src = src;
-        Tea.Template.supertype.__init__.call(this, options);
+        this.__super__(options);
     },
     
     /** Tea.Template.apply (context)
@@ -61,10 +61,15 @@ Tea.Template = Tea.Class({
         
         var path = variable.split('.');
         var value = context;
+        var candidate = null;
         for( var i = 0; i < path.length; i++)
         {
             if (path[i] == '*') continue;
-            value = value[path[i]];
+            candidate = value[parseInt(path[i])];
+            if (candidate != undefined)
+                value = candidate;
+            else
+                value = value[path[i]];
             if (value == undefined)
                 if (this.missing_throws)
                     throw new Error("Unable to find variable in context: " + path.join("."));

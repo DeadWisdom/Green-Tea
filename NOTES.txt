@@ -1,0 +1,14 @@
+Thoughts:
+    - Get rid of options, they should just go on the object.
+    - Should we have this be a prototype system, get rid of classes?
+        If we do this, we have to support some sort of init() for actual use
+        as opposed to init() for the prototype, not sure how to do that.
+    - remove() should not be overloaded, there should be "remove(item)",
+        and "destroy()"
+    - Skins are difficult, we should change it from a class to a function
+        that merely returns a jquery object, or maybe the option?
+    - Should we allow chaining everywhere like in jQuery?  Or is it better
+        to have a separation there, since our objects are not collections.
+    - How can we better integrate with jQuery?
+    - What if we assigned a source at init() with the skin, and then got rid
+        of most of the isRendered()?

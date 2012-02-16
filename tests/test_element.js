@@ -5,15 +5,15 @@ new Tea.Testing.Suite({
     
     test_element_render : function()
     {
-        var e = new Tea.Element({});
+        var e = Tea.Element({});
         var source = e.render();
         assertEqual(source[0].tagName, 'DIV');
         
-        var e = new Tea.Element({source: '<p>'});
+        var e = Tea.Element({source: '<p>'});
         var source = e.render();
         assertEqual(source[0].tagName, 'P');
         
-        var e = new Tea.Element({source: '<p>', cls: 'a', id: 'b', html: "<br/>"});
+        var e = Tea.Element({source: '<p>', cls: 'a', id: 'b', html: "<br/>"});
         var source = e.render();
         assertEqual(source[0].tagName, 'P');
         assertEqual(source[0].className, 'a');
@@ -23,15 +23,15 @@ new Tea.Testing.Suite({
     
     test_diff_skin : function()
     {
-        var skin = Tea.Element.Skin.subclass({
+        var skin = Tea.Skin.extend({
             render : function()
             {
                 return $("<input/>")
             }
-        })
+        });
         
-        e = new Tea.Element({skin: skin});
+        e = Tea.Element({skin: skin});
         var source = e.render();
         assertEqual(source[0].tagName, 'INPUT');
     }
-})
+});

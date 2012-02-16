@@ -1,23 +1,24 @@
-/** Tea.StackContainer
+/** Tea.Stack
 
-    A container that acts as a stack, showing only the top few elements.  Pushing elements onto the stack moves
-    the existing elements to the left.
+    A container that acts as a stack, you can push and pop onto it.
+    
+    The default skin pushes elements onto it from the right to the left, so
+    that you only see the top few elements that can fit on the screen.
     
     @requires Tea.Container
     @extends Tea.Container
  **/
 
-Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
+Tea.Stack = Tea.Container.extend('t-stack', {
     options: {
-        columns: 3,
-        space: 4,
-        column_width: 350,
-        __stack__: true
+        skin: 't-stack-skin',
+        margin: 0,
+//        anchor: 0
     },
-    __init__ : function()
+    __init__ : function(options)
     {
+        this.__super__(options);
         this.paused = 1;
-        Tea.StackContainer.supertype.__init__.apply(this, arguments);
     },
     render : function(source)
     {
@@ -25,25 +26,31 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
         setTimeout(function() { self.refresh() }, 100);
         
         this.paused = 0;
-        return Tea.StackContainer.supertype.render.call(this, source);
+        return this.__super__(source);
     },
     append : function( item )
     {
-        return this.push( item );
+        item = this.__super__(item);
+        this.refresh( item );
+        return item;
     },
     insert : function( pos, item )
     {
-        Tea.StackContainer.supertype.insert.call(this, pos, item);
+        this.__super__(pos, item);
         this.refresh( item );
     },
-    /** Tea.StackContainer.push(item, after)
+    /** Tea.Stack.push(item, [after])
         
-        Pushes the *item*.
+        Pushes the *item* onto the stack.
+        
         If *after* is specified, all items after it will be popped before
         pushing the *item*.
     **/
     push : function( item, after )
-    {
+    {   
+        if (item.parent == this)
+            return item;
+        
         if (after)
         {
             this.pause();
@@ -51,21 +58,26 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
             this.play();
         }
         
-        item = Tea.StackContainer.supertype.append.call(this, item);
-        this.refresh( item );
+        return this.append(item);
     },
+    /** Tea.Stack.pop( [item] )
+        
+        Pops the top item off the stack.
+        
+        If *item* is specified, it will pop that item and all after it.
+    **/
     pop : function( item )
     {
-        if (item)
-        {
-            if (item.parent !== this) throw new Error("Popping an item that isn't in the Tea.StackContainer.");
-            
-            var now = this.items[this.items.length-1];
-            while(now != item) {
-                Tea.StackContainer.supertype.remove.call(this, now);
-                now = this.items[this.items.length-1];
-            }
-        }
+        this.pause();
+        
+        if ( item )
+            this.popAfter( item );
+        else
+            item = this.items[this.items.length-1]
+        
+        this.removeItem(item);
+        
+        this.play();
         
         var item = this.items[this.items.length-1];
         Tea.StackContainer.supertype.remove.call(this, item);
@@ -77,30 +89,35 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
     {
         var item = this.__super__(item);
         var self = this;
-        item.bind('close', function()
+        this.hook(item, 'close', function()
         {
             self.pop(item);
         })
         return item;
     },
-    remove : function( item )
+    popAfter : function( item, norefresh )
     {
-        if ( item )
-            this.pop(item);
-        else
-            return Tea.StackContainer.supertype.remove.call(this);
-    },
-    popAfter : function( item )
-    {
-        var next = this.items[item._index+1];
-        if (next)
-            this.pop(next);
+        if (item.parent !== this) return; // throw new Error("Trying to popAfter() an item that isn't in this Tea.Stack");
+        
+        this.pause();
+        
+        while(this.items.length > item._index + 1)
+            this.removeItem(this.items[item._index + 1]);
+            
+        this.play();
+        if (!norefresh) this.refresh();
     },
     refresh : function( panel )
     {
-        if (!this.skin || this.paused > 0) return;
+        if (!this.isRendered() || this.paused > 0) return;
         
         this.skin.refresh( panel );
+    },
+    remove : function( item )
+    {
+        this.__super__( item );
+        if (item)
+            this.refresh();
     },
     pause : function()
     {
@@ -109,149 +126,66 @@ Tea.StackContainer = Tea.Container.subclass('Tea.StackContainer', {
     play : function()
     {
         this.paused -= 1;
+        if (this.paused < 0) this.paused = 0;
     }
 })
 
-Tea.StackContainer.Skin = Tea.Container.Skin.subclass('Tea.StackContainer.Skin', {
+Tea.Stack.Skin = Tea.Container.Skin.extend('t-stack-skin', {
     options: {
-        cls: 't-stack'
+        cls: 't-stack',
+    },
+    render : function(source)
+    {
+        source = this.__super__(source);
+        $(window).resize(Tea.method(this.refresh, this));
+        return source;
     },
     refresh : function( new_item )
     {
         var element = this.element;
-        var i, k, item;
-        var len = element.items.length;
-        var hidden = [];
-        var shown = [];
+        var items = element.items;
+        var gutter = element.margin;
+        var max_width = element.source.width();
+        var width = gutter;
         
-        var sz = element.options.columns;
-        for (i = 0; i < len; i++)
-        {
-            item = element.items[len - i - 1];
-            if (sz > 0)
-            {
-                shown.push(item);
-                sz -= (item.options.size || 1);
-                if (item.options.size == 2)
-                    item.source.addClass('t-wide')
-            }
-            else
-                hidden.push(item);
+        var show = 0;
+        
+        for(var i = items.length-1; i >= 0; i--) {
+            var item = items[i];
+            var w = item.source.width() + gutter;
+            if (width + w > max_width && show > 0)
+                break;
+            width += w;
+            show += 1;
         }
-        shown.reverse();
         
-        var width = (element.source.width() / element.options.columns) - (element.options.space / 2);
-    
-        for (var i=0; i<hidden.length; i++)
-            hidden[i].source.hide().css('left', -width + 50);
+        var start = items.length - show;
+        var left = gutter;
         
-        k = 0;
-        for (var i=0; i<shown.length; i++)
-        {
-            var item = shown[i];
-            var size = item.options.size || 1;
-            var left = ((width + element.options.space) * k);
+        element.each(function(index, item) {
+            if (index < start) {
+                item.source.hide().css('left', 0 - item.source.width() - gutter);
+                return;
+            }
             
             if (item == new_item)
                 item.source.css({
                   left: left,
-                  opacity: 0,
-                  width: width * size
+                  opacity: 0
                 });
             
-            item.source.show().css({
-                position: 'absolute',
-                width: width * size
-            }).animate({
-                left: left,
-                opacity: 1
-            });
-            
-            k += item.options.size || 1;
-        }
+            item.source
+                .stop(true, true)
+                .show()
+                .css('position', 'absolute')
+                .animate({
+                    left: left,
+                    opacity: 1
+                });
+                
+            left += (item.source.width() + gutter);
+        });
     }
-})
-
-Tea.StackContainer.StretchySkin = Tea.StackContainer.Skin.subclass("Tea.StackContainer.Stretchy", {
-    options: {
-        buffer: 100,
-        scrollParent: window
-    },
-    render : function()
-    {
-        var result = Tea.StackContainer.StretchySkin.supertype.render.apply(this, arguments);
-        
-        $(window).resize( Tea.method(this.onResize, this) );
-        $(window).scroll( Tea.latent(300, this.onScroll, this) );
-        $(window).scroll( Tea.latent(300, this.onResize, this) );
-        
-        return result;
-    },
-    refresh : function( new_item )
-    {   
-        var result = this.__super__( new_item );
-        
-        if (new_item)
-            this.correct( new_item );
-        
-        return result;
-    },
-	onResize : function()
-	{
-	    var width = this.source.parent().width() || this.source.width();
-	    
-	    this.element.options.columns = parseInt(width / this.element.options.column_width);
-	    
-	    this.refresh();
-	},
-	correct : function(item)
-	{
-	    if (item.options.title == 'Tea') return;
-	        
-	    var fold = $(this.options.scrollParent).scrollTop();
-	    var height = $(this.options.scrollParent).height();
-	    
-	    var s = item.source;
-	    var buffer = this.options.buffer;
-	    
-	    var top = s.offset().top;
-	    var bottom = s.offset().top + s.height();
-	    
-	    var b_delta = bottom - (fold + $(window).height());
-	    var t_delta = fold - top;
-	    
-	    var new_top = null;
-	    if (b_delta > 0)
-	        new_top = top - b_delta;
-	        
-	    if (s.height() > height)
-	    {	    
-	        if (t_delta < 0)
-	            new_top = fold;
-	    }
-	    else
-	    {
-	        if (t_delta != 0)
-	            new_top = fold;
-	    }
-	    
-	    if (new_top != null)
-	    {
-	        new_top = new_top - this.source.offset().top;
-    	    if (new_top < 0)
-    	        new_top = 0
-	        s.animate({top: new_top}, 'fast');
-        }
-	},
-	onScroll : function()
-	{   
-	    this._scrolltimeout
-	    var self = this;
-	    this.element.each(function()
-	    {
-	        self.correct(this);
-	    });
-	}
 });
 
 Tea.pushStack = function(element, requester)
@@ -259,11 +193,11 @@ Tea.pushStack = function(element, requester)
     var now = requester.parent;
     var child = requester;
     while(now) {
-        if (now.__stack__) {
+        if (now instanceof Tea.Stack) {
             return now.push(element, child);
         }
         child = now;
         now = now.parent;
     }
-    console.log("Fail.");
+    throw new Error("Cannot find the stack owner of the requester on Tea.pushStack.");
 }

@@ -1,20 +1,22 @@
-#!/usr/bin/env python
+#!env/bin/python
 
 modules = [
     'Tea',
     'Tea.Container',
     'Tea.Dialog',
     'Tea.Element',
-    'Tea.Form',
-    'Tea.Drag',
-    #'Tea.List',
+    'Tea.Field',
+    'Tea.Input',
     'Tea.Panel',
-    'Tea.Resource',
-    'Tea.StackContainer',
-    'Tea.Model',
+    'Tea.List',
+    #'Tea.Resource',
+    'Tea.Stack',
     'Tea.Template',
     'Tea.Testing',
-    'Tea.Widget'
+    'Tea.Tree',
+    'Tea.Widget',
+    'Tea.Drag',
+    'Tea.Popup',
 ]
 
 import jsbundle

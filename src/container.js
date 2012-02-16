@@ -7,19 +7,22 @@
     More comments.
  **/
 
-Tea.Container = Tea.Element.subclass('Tea.Container', {
+Tea.Container = Tea.Element.extend('t-container', {
     options: {
         items: null,
-        fields: null
+        skin: 't-container-skin',
+        layout: null
     },
     __init__ : function(options)
     {
         this.__super__(options);
         var items = jQuery.makeArray(this.items);
         this.items = [];
-        this.fields = {};
+        
         var container = this;
-        jQuery.each(items, function(){ container.append(this); })
+        jQuery.each(items, function(index, item) {
+            container.append(item); 
+        })
     },
     /** Tea.Container.own(item)
         
@@ -27,24 +30,12 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     **/
     own : function(item)
     {
-        if (item.constructor === Object)
-        {
-            var cls = Tea.classes[item.type];
-            if (!cls && this.classes)
-                cls = this.classes[item.type];
-            if (!cls)
-                throw new Error("Attempt to add to this container, an Object instance with no valid type: " + item.type);
-            
-            item = new cls(item);
-        }
+        item = Tea.manifest(item);
         
         if (item.parent)
             item.remove();
-            
-        item.parent = this;
         
-        if (item.name)
-            this.fields[item.name] = item;
+        item.parent = this;
         
         return item;
     },
@@ -52,26 +43,37 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
     {
         if (value == null || value == undefined) return;
         
-        for(var key in this.fields)
-            if (value[key] != undefined)
-                this.fields[key].setValue(value[key]);
+        for(var i = 0; i < this.items.length; i++) {
+            var k = this.items[i].name;
+            if (value[k] != undefined) {
+                this.items[i].setValue(value[k]);
+            }
+        }
     },
     getValue : function()
     {   
         var gather = {};
-        for(var key in this.fields)
-            gather[key] = this.fields[key].getValue();
+        for(var i = 0; i < this.items.length; i++) {
+            var item = this.items[i];
+            if (item.name && jQuery.isFunction(item.getValue))
+                gather[item.name] = item.getValue();
+        }
         return gather;
     },
     append : function(item)
     {
+        if (item.parent == this)
+            return item;
+            
         item = this.own(item);
         
         item._index = this.items.length;
         this.items.push(item);
         
-        if (this.isRendered())
+        if (this.isRendered()) {
             this.skin.append(item.render());
+            this.resize();
+        }
         
         return item;
     },
@@ -81,6 +83,9 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
         
         if (pos >= this.items.length)
             return this.append(item);
+        
+        if (item.parent == this)
+            return item;
         
         item = this.own(item);
         
@@ -95,84 +100,142 @@ Tea.Container = Tea.Element.subclass('Tea.Container', {
                 this.skin.prepend(item.render())
             else
                 this.skin.after(this.items[item._index - 1].source, item.render());
+            
+            this.resize();
         }
         
         return item;
     },
     prepend : function(item)
     {
+        if (item.parent == this)
+            return item;
         return this.insert(0, item);
     },
-    remove : function(item)
-    {
-        if (!item) return Tea.Container.supertype.remove.call(this);   // Act as an element, remove myself.
+    removeItem : function(item)
+    {   
         if (item.parent !== this) return;
         
         this.items.splice(item._index, 1);
         
         item.parent = null;
         item.remove();
-        
+                
         for(var i=0; i < this.items.length; i++)
             this.items[i]._index = i;
     },
+    remove : function() {
+        this.__super__();
+        this.empty();
+    },
     empty : function()
     {
-        for(var i=0; i < this.items.length; i++)
-        {
-            var item = this.items[i];
-            if (item.isRendered())
-                item.skin.remove();
+        while(this.items.length > 0) {
+            var item = this.items.pop();
             item.parent = null;
+            item.remove();
         }
         this.items = [];
     },
     clear : function()
     {
-        for(var i=0; i < this.items.length; i++)
-        {
-            var item = this.items[i];
-            if (item.isRendered())
-                item.skin.remove();
+        while(this.items.length > 0) {
+            var item = this.items.pop();
             item.parent = null;
+            item.remove();
         }
         this.items = [];
     },
     each : function(func, context)
     {
-        if (context)
-            jQuery.each(this.items, function() { func.apply(context, arguments) });
-        else
-            jQuery.each(this.items, func);
+        context = context || this;
+        jQuery.each(this.items, function() { func.apply(context, arguments) });
+    },
+    resize : function()
+    {
+        this.__super__();
+        
+        this.each(function(i, item) {
+            item.resize();
+        });
     }
 })
 
-Tea.Container.Skin = Tea.Element.Skin.subclass('Tea.Container.Skin', {
+Tea.Container.Skin = Tea.Skin.extend('t-container-skin', {
     render : function(source)
     {
-        var source = Tea.Container.Skin.supertype.render.call(this, source);
+        var source = this.__super__(source);
         
         var items = this.element.items;
         for(var i=0; i < items.length; i++)
             this.append(items[i].render());
         
+        if (this.element.layout)
+            this.element.layout = Tea.manifest(this.element.layout);
+        
         return source;
     },
-    onAddSource : function(src)
-    {},
     append : function(src)
     {
         this.source.append(src);
-        this.onAddSource(src);
     },
     prepend : function(src)
     {
         this.source.prepend(src);
-        this.onAddSource(src);
     },
     after : function(pivot, src)
     {
         pivot.after(src);
-        this.onAddSource(src);
+    },
+    resize : function() {
+        if (this.element.layout) return this.element.layout.resize(this.element);
+    }
+});
+
+Tea.Layout = Tea.Class('t-layout', {
+    resize : function(container) 
+    {},
+    getSize : function(size) {
+        if (size == 'fill') return 0;
+        if (!size) return 0;
+        return size;
+    }
+});
+
+Tea.Layout.VSplit = Tea.Layout.extend('t-vsplit', {
+    resize : function(container) {
+        var heights = 0;
+        var fills = 0;
+        var sz = 0;
+        var getSize = this.getSize;
+        var content = null;
+        
+        container.each(function(i, item) {
+            if (!item.isRendered()) return;
+            if (!content) content = item.source.offsetParent();
+            heights += getSize(item.height);
+            if (item.height == 'fill') fills += 1;
+            sz += 1;
+        });
+        
+        var wiggle = content.height() - heights - 2;
+        var fill = wiggle / fills;
+        var last = 0;
+        
+        container.each(function(i, item) {
+            if (!item.isRendered()) return;
+            var source = item.source;
+            var height = (item.height == 'fill' ? fill : item.height);
+            
+            source.css({
+                position: 'absolute',
+                top: last,
+                height: height,
+                left: 0,
+                right: 0
+            })
+            
+            last = last + height + 1;
+        })
     }
 })

@@ -1,9 +1,9 @@
-new Tea.Testing.Suite({
+Tea.Testing.Suite({
     name: 'Tea',
     
     test_class_example : function()
     {
-        Greeter = Tea.Class('Greeter', {
+        var Greeter = Tea.Class('Greeter', {
             options: {
                recipient : "world"
             },
@@ -11,55 +11,93 @@ new Tea.Testing.Suite({
             {
                 return "Hello " + this.recipient + "!";
             }
-        })
+        });
         
-        var greeter = new Greeter();
+        var greeter = Greeter();
         assertEqual(greeter.greet(), 'Hello world!');
+        
+        var greeter2 = new Greeter();   // "new" is optional (damn straight)
+        assertEqual(greeter.greet(), greeter2.greet());
 
-        var greeter = new Greeter({recipient: 'javascripter'});
+        var greeter = Greeter({recipient: 'javascripter'});
         assertEqual(greeter.greet(), "Hello javascripter!");
+    },
+    
+    test_instanceof : function()
+    {
+        var A = Tea.Class('A', {});
+        var B = Tea.Class('B', {});
+        var C = B.extend('C', {});
+        
+        var a = new A();
+        var b = new B();
+        var c = new C();
+        var d = new Object();
+        
+        // Basics
+        assert(a instanceof A);
+        assert(b instanceof B);
+        assert(c instanceof C);
+        assert(d instanceof Object);
+        
+        // Inheritance
+        assert(c instanceof B);
+        assert(c instanceof Object);
+        assert(c instanceof Tea.Object);
+        assert(a instanceof Object);
+        assert(a instanceof Tea.Object);
+        
+        // Anti
+        assert(! (c instanceof A));
+        assert(! (d instanceof A));
+        assert(! (b instanceof C));
     },
     
     test_subclassing : function()
     {
-        One = Tea.Class({});
-        Two = One.subclass({});
+        var One = Tea.Class({});
+        var Two = One.extend({});
         
-        assertEqual(Two.supertype, One.prototype);
-        assertEqual(Two.supertype.constructor, One);
+        assertEqual(Two.__super__, One);
+        assertEqual(Two.prototype.constructor, One);
     },
     
     test_registration : function()
     {
-        Class = Tea.Class('Class', {});
+        var Class = Tea.Class('Class', {});
         assertEqual(Class, Tea.getClass('Class'));
     },
     
     test_options : function()
     {
-        One = Tea.Class({
+        One = Tea.Class('One', {
             options: {a: 1, b: 2}
         });
-        Two = One.subclass({
+        Two = One.extend('Two', {
             options: {b: 'b'}
         });
         
-        var uber = new One();
-        var sub = new Two();
+        var uber = One();
+        var sub = Two();
         
         assertEqual(uber.a, 1);
         assertEqual(uber.b, 2);
+        
         assertEqual(sub.a, 1);
         assertEqual(sub.b, 'b');
         
-        var nother = new One({a: 'a'});
+        sub.a = 2;
+        assertEqual(sub.a, 2);
+        assertEqual(sub.options.a, 1);
+        
+        var nother = One({a: 'a'});
         assertEqual(nother.a, 'a');
         assertEqual(nother.b, 2);
     },
     
     test_events : function()
     {
-        var object = new Tea.Object();
+        var object = Tea.Object();
         var state = 0;
         
         object.bind("signal", function(step) { state += step }, [1]);
@@ -87,30 +125,6 @@ new Tea.Testing.Suite({
         object.unbind('signal', add_two);
         object.trigger('signal');
         assertEqual(state, 9);
-    },
-    
-    test_extend : function()
-    {
-        One = Tea.Class({
-            options: {one: 1},
-            one: 1,
-            two: 2
-        });
-        
-        One.extend({
-            options: {one: 'one'}
-        });
-        
-        Two = Tea.Class({
-            one: 'one'
-        })
-        
-        One.extend(Two);
-        
-        var o = new One();
-        assertEqual(o.one, 'one');
-        assertEqual(o.one, 'one');
-        assertEqual(o.two, 2);
     },
     
     test_json : function()
@@ -144,10 +158,39 @@ new Tea.Testing.Suite({
         
         testJSON(function() {}, undefined);
         testJSON(undefined, undefined);
+
+        testJSON(null, "null");
     },
     
     test_app : function()
     {
-        App = Tea.Application.subclass('App', {});
+        App = Tea.Application.extend('App', {});
+    },
+    
+    test_hook : function() {
+        var counter = 0;
+        
+        a = Tea.Object();
+        b = Tea.Object();
+        
+        a.hook(b, 'incr', function() { counter += 1; });
+        
+        assertEqual(counter, 0);
+        b.trigger('incr');
+        assertEqual(counter, 1);
+        b.trigger('incr');
+        assertEqual(counter, 2);
+        
+        a.unhookAll();
+        b.trigger('incr');
+        assertEqual(counter, 2);
+        
+        a.hook(b, 'incr', function() { counter += 1; });
+        b.trigger('incr');
+        assertEqual(counter, 3);
+        
+        a.unhook(b);
+        b.trigger('incr');
+        assertEqual(counter, 3);
     }
 })

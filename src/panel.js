@@ -5,12 +5,25 @@
     @requires Tea.Container
  **/
 
-Tea.Panel = Tea.Container.subclass('Tea.Panel', {
+Tea.Panel = Tea.Container.extend('t-panel', {
     options: {
         title: '',
         closable: false,
         top: null,
-        bottom: null
+        bottom: null,
+        skin: 't-panel-skin'
+    },
+    setTop : function(bar) {
+        if (this.isRendered())
+            this.top = bar;
+        else
+            this.skin.setBar('top', bar);
+    },
+    setBottom : function(bar) {
+        if (this.isRendered())
+            this.bottom = bar;
+        else
+            this.skin.setBar('bottom', bar);
     },
     setTitle : function(title)
     {
@@ -41,11 +54,11 @@ Tea.Panel = Tea.Container.subclass('Tea.Panel', {
 
 Tea.Panel.focus = null;
 
-Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
+Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
     options: {
         cls: 't-panel'
     },
-    render : function() {
+    render : function(source) {
         var element = this.element;
         
         this.content = $("<div class='t-content'/>");
@@ -54,69 +67,77 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
         var anchor = this.anchor = $("<a class='t-focuser' href='#'>&#160;</a>");        
 
         anchor.has_focus = false;
-        this.anchor.bind('focus', function() { 
+        this.hook(this.anchor, 'focus', function() { 
             anchor.has_focus = true; 
             element.source.addClass('t-focus'); 
             element.trigger('focus') 
             Tea.Panel.focus = element;
         });
-        this.anchor.bind('blur', function() { 
+        this.hook(this.anchor, 'blur', function() { 
             anchor.has_focus = false;
             element.source.removeClass('t-focus');
             element.trigger('blur')
             Tea.Panel.focus = null;
         });
         
-        Tea.Panel.Skin.supertype.render.call(this);
+        var source = this.__super__(source);
         
-        /*this.source.bind('mousedown', function(e)
-        {
-            if (!anchor.has_focus)
-                anchor.focus();
-            e.preventDefault(); // Kills the bluring of our anchor.
-        })*/
-        
-        this.source.append(this.anchor);
-        this.source.append(this.title);
-        this.source.append(this.content);
-        
-        this.setBars(element.top, element.bottom);
+        source.append(this.anchor);
+        source.append(this.title);
+        source.append(this.content);
         
         if (element.closable)
-            this.closer = $("<div class='t-close t-icon CloseIcon'></div>")
-                            .appendTo(this.title)
+            this.closer = $("<div class='t-close t-icon icon-close'></div>")
+                            .appendTo(source)
                             .click(function() { element.close() });
         
-        return this.source;
+        if (element.top)
+            this.setBar('top', element.top);
+            
+        if (element.bottom)
+            this.setBar('bottom', element.bottom);
         
+        return source;
+        
+    },
+    setBar : function(position, bar) {
+        var element = this.element;
+        var existing = element[position];
+        if (existing instanceof Tea.Object) {
+            if (existing.parent)
+                existing.remove();
+            this.source.removeClass('t-has-' + position);
+        }
+        element[position] = null;
+        
+        if (!bar) return;
+        
+        if (jQuery.isArray(bar))
+            bar = {
+                type: 't-container',
+                items: bar,
+                cls: 't-bar t-' + position
+            };
+        
+        var bar = element[position] = Tea.manifest(bar);
+        bar.each(function(i, item) {
+            item.context = item.context || element;
+        });
+        
+        bar.panel = element;
+        
+        if (position == 'top')
+            this.content.before(bar.render());
+        else
+            this.content.after(bar.render());
+        
+        this.hook(this, 'remove', function() { bar.remove() });
+        
+        this.source.addClass('t-has-' + position);
     },
     setTitle : function(title)
     {
         this.title.empty().append(title);
-    },
-    setBars : function(top, bottom)
-    {
-        if (top) {
-            if (top.length)
-                for(var i = 0; i < top.length; i++) {
-                    top[i].context = this.element;
-                }
-            this.top = new Tea.Container({cls: 't-bar t-top', items: top});
-            this.top.panel = this.element;
-            this.title.after(this.top.render());
-            this.source.addClass('t-has-top');
-        }
-        if (bottom)
-        {
-            if (bottom.length)
-                for(var i = 0; i < bottom.length; i++) {
-                    bottom[i].context = this.element;
-                }
-            this.bottom = new Tea.Container({cls: 't-bar t-bottom', items: bottom});
-            this.bottom.panel = this.element;
-            this.content.after(this.bottom.render());
-            this.source.addClass('t-has-bottom');
-        }
     },
     append : function(src)
     {
@@ -147,12 +168,14 @@ Tea.Panel.Skin = Tea.Container.Skin.subclass('Tea.Panel.Skin', {
     },
     hasFocus : function() {
         return this.anchor.hasFocus;
+    },
+    remove : function() {
+        if (this.element.top)
+            this.setBar('top', null);
+            
+        if (this.element.bottom)
+            this.setBar('bottom', null);
+        
+        this.__super__();
     }
 });
-
-Tea.Panel.WindowSkin = Tea.Panel.Skin.subclass('Tea.Panel.WindowSkin',
-{
-    options: {
-        cls: 't-window t-panel'
-    }
-})
