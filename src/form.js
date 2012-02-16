@@ -20,11 +20,14 @@ Tea.Field = Tea.Element.extend('t-field', {
     __init__ : function(options) 
     {
         this.__super__(options);
-        if (this.input)
-        {
-            this.input = Tea.manifest(this.input);
-            this.input.setValue(this.value);
-        }
+        var opts = this.getInputOptions();
+        this.input = Tea.manifest(opts);
+    },
+    getInputOptions : function() {
+        var options = this.input || {};
+        options.name = this.name;
+        options.value = this.value;
+        return options;
     },
     setLabel : function(html)
     {
@@ -154,23 +157,23 @@ Tea.Field.Skin = Tea.Skin.extend('t-field-skin', {
 
 Tea.TextField = Tea.Field.extend('t-text', {
     options: {
+        input: {type: 't-text-input'},
         blank: true,
         re: null,
         password: false,
         maxlength: null,
-        emptyText: null
+        emptyText: null,
+        autocompelte: true
     },
-    __init__ : function(options)
-    {
-        this.__super__(options);
-        
-        this.input = Tea.TextInput({
-            blank: this.blank,
-            re: this.re,
-            password: this.password,
-            maxlength: this.maxlength,
-            emptyText: this.emptyText
-        });
+    getInputOptions : function() {
+        var options = this.__super__();
+        options.blank = this.blank;
+        options.re = this.re;
+        options.password = this.password;
+        options.maxlength = this.maxlength;
+        options.emptyText = this.emptyText;
+        options.attrs = this.autocomplete ? {} : {autocomplete: 'off'};
+        return options;
     }
 });
 
@@ -182,37 +185,32 @@ Tea.PasswordField = Tea.TextField.extend('t-password', {
 
 Tea.TextAreaField = Tea.Field.extend('t-textarea', {
     options: {
+        input: {type: 't-textarea-input'},
         blank: true,
         value: null
     },
-    __init__ : function(options) {
-        this.__super__(options);
-        
-        this.input = Tea.TextAreaInput({
-            blank: this.blank,
-            value: this.value
-        });
+    getInputOptions : function() {
+        var options = this.__super__();
+        options.blank = this.blank;
+        return options;
     }
 });
 
 Tea.SelectField = Tea.Field.extend('t-select', {
     options: {
+        input: {type: 't-select-input'},
         choices: []
     },
-    __init__ : function(options)
-    {
-        this.__super__(options);
-        
-        this.input = Tea.SelectInput({
-            choices: this.choices,
-            value: this.value
-        });
+    getInputOptions : function() {
+        var options = this.__super__();
+        options.choices = this.choices;
+        return options;
     }
 });
 
 Tea.CheckBoxField = Tea.Field.extend('t-checkbox', {
     options: {
-        input: 't-checkbox-input',
+        input: {type: 't-checkbox-input'},
         clickToggles: true
     }
 })

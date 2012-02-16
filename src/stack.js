@@ -75,7 +75,7 @@ Tea.Stack = Tea.Container.extend('t-stack', {
         else
             item = this.items[this.items.length-1]
         
-        this.remove(item);
+        this.removeItem(item);
         
         this.play();
         
@@ -92,17 +92,17 @@ Tea.Stack = Tea.Container.extend('t-stack', {
         })
         return item;
     },
-    popAfter : function( item )
+    popAfter : function( item, norefresh )
     {
         if (item.parent !== this) return; // throw new Error("Trying to popAfter() an item that isn't in this Tea.Stack");
         
         this.pause();
         
         while(this.items.length > item._index + 1)
-            this.remove(this.items[item._index + 1]);
+            this.removeItem(this.items[item._index + 1]);
             
         this.play();
-        this.refresh();
+        if (!norefresh) this.refresh();
     },
     refresh : function( panel )
     {

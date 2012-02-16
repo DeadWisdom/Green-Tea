@@ -65,6 +65,9 @@ Tea.Element = Tea.Class('t-element', {
             })
         }
         
+        if (this.source.closest('html').length > 0)
+            this.resize();
+        
         return this.source;
     },
     onRender : function()
@@ -76,7 +79,7 @@ Tea.Element = Tea.Class('t-element', {
     remove : function()  // Remove from element's parent and source's parent
     {
         if (this.parent)
-            return this.parent.remove(this);
+            return this.parent.removeItem(this);
         
         if (this.isRendered())
             this.skin.remove();

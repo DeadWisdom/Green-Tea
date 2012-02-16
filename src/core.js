@@ -335,10 +335,11 @@ Tea.Object.prototype = {
     hook : function(target, event, func, args) {
         if (!this.__hooks) this.__hooks = [];
         var handler = Tea.method(func, this);
-//        if (target instanceof Tea.Object)
+        if (target instanceof Tea.Object) {
             target.bind(event, handler, args);
-//        else
-//            target.on(event, handler, args);
+        } else {
+            target.on(event, null, args, handler);
+        }
         this.__hooks.push([target, event, handler]);
     },
     
@@ -356,7 +357,10 @@ Tea.Object.prototype = {
             if (target != hook[0]) continue;
             var event =   hook[1];
             var handler = hook[2];
-            target.unbind(event, handler);
+            if (target instanceof Tea.Object)
+                target.unbind(event, handler);
+            else
+                target.off(event, null, handler);
         }
     },
     
@@ -371,7 +375,10 @@ Tea.Object.prototype = {
             var target =  hook[0];
             var event =   hook[1];
             var handler = hook[2];
-            target.unbind(event, handler);
+            if (target instanceof Tea.Object)
+                target.unbind(event, handler);
+            else
+                target.off(event, null, handler);
         }
     },
     

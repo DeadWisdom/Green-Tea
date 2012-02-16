@@ -12,12 +12,17 @@ Tea.Input = Tea.Element.extend('t-input', {
     options : {
         value: null,
         hasFocus: false,
-        disabled: false
+        disabled: false,
+        name: null
     },
     render : function(source)
     {
         source = this.__super__(source);
         this.setValue(this.value);
+        
+        if (this.name)
+            source.attr('name', this.name);
+            
         return source;
     },
     getValue : function()
@@ -117,6 +122,9 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
         if (element.emptyText)
             this.setupEmptyText(element.emptyText);
             
+        if (element.name)
+            source.attr('name', element.name);
+            
         if (element.hasFocus)
             this.setFocus(true);
             
@@ -186,10 +194,10 @@ Tea.TextInput.Skin = Tea.Skin.extend('t-text-input-skin', {
 });
 
 
-Tea.TextAreaInput = Tea.Input.extend('t-text-area-input', {
+Tea.TextAreaInput = Tea.Input.extend('t-textarea-input', {
     options : {
         source: '<textarea>',
-        skin: 't-text-area-input',
+        skin: 't-textarea-input-skin',
         blank: true
     },
     isValid : function()
@@ -201,7 +209,7 @@ Tea.TextAreaInput = Tea.Input.extend('t-text-area-input', {
     }
 });
 
-Tea.TextAreaInput.Skin = Tea.Skin.extend('t-text-area-input', {
+Tea.TextAreaInput.Skin = Tea.Skin.extend('t-textarea-input-skin', {
     render : function(source) {
         var element = this.element;
         source = this.__super__(source);

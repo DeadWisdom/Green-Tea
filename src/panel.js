@@ -104,7 +104,7 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
         var element = this.element;
         var existing = element[position];
         if (existing instanceof Tea.Object) {
-            if (existing.isRendered())
+            if (existing.parent)
                 existing.remove();
             this.source.removeClass('t-has-' + position);
         }
@@ -130,6 +130,8 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
             this.content.before(bar.render());
         else
             this.content.after(bar.render());
+        
+        this.hook(this, 'remove', function() { bar.remove() });
         
         this.source.addClass('t-has-' + position);
     },
@@ -166,5 +168,14 @@ Tea.Panel.Skin = Tea.Container.Skin.extend('t-panel-skin', {
     },
     hasFocus : function() {
         return this.anchor.hasFocus;
+    },
+    remove : function() {
+        if (this.element.top)
+            this.setBar('top', null);
+            
+        if (this.element.bottom)
+            this.setBar('bottom', null);
+        
+        this.__super__();
     }
 });
